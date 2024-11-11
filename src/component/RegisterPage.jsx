@@ -1,41 +1,48 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; 
 
-function LoginPage() {
+function RegisterPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const navigate = useNavigate(); 
 
-  const handleLogin = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
 
     const requestBody = {
-        username,
-        password,
-        role
+      username,
+      password,
+      role
     };
 
     try {
-        const response = await fetch("http://localhost:7779/api/auth/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(requestBody),
-        });
+      const response = await fetch("http://localhost:7779/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
 
-        if (response.ok) {
-            navigate("/home"); // Redirect to home page after successful login
-        } else {
-            const errorData = await response.json();
-            alert(errorData.message || "Invalid username or password.");
+      if (response.ok) {
+        alert("Registered successfully!");
+        
+        // Redirect based on role
+        if (role === "Student") {
+          navigate("/student-details"); 
+        } else if (role === "Tutor") {
+          navigate("/tutor-details"); 
         }
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || "Registration failed. Please try again.");
+      }
     } catch (error) {
-        console.error("Error during login:", error);
-        alert("An error occurred. Please try again later.");
+      console.error("Error during registration:", error);
+      alert("An error occurred. Please try again later.");
     }
-};
+  };
 
   // Inline styles for the full-page background image
   const pageStyle = {
@@ -65,8 +72,8 @@ function LoginPage() {
   return (
     <div style={pageStyle}>
       <div style={formStyle}>
-        <h3>Login</h3>
-        <form onSubmit={handleLogin}>
+        <h3>Register</h3>
+        <form onSubmit={handleRegister}>
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <input
@@ -107,21 +114,12 @@ function LoginPage() {
           </div>
 
           <button type="submit" className="btn btn-success mt-3">
-            Login
+            Register
           </button>
         </form>
-
-        <div className="mt-3">
-          <p>
-            Don't have an account?{" "}
-            <a href="/register" className="btn btn-link">
-              Register here
-            </a>
-          </p>
-        </div>
       </div>
     </div>
   );
 }
 
-export default LoginPage;
+export default RegisterPage;
