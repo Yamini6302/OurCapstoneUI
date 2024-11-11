@@ -10,6 +10,9 @@ function App() {
       <Routes>
       
         <Route path="/login" element={<LoginPage />}> </Route> 
+        
+        <Route path="student-register" element={<StudentRegister></StudentRegister>}></Route>
+        <Route path="dashboard" element={<Dashboard></Dashboard>}></Route>
         <Route path="/*" element={<LoginPage />}></Route>
       </Routes>
     </Router>
