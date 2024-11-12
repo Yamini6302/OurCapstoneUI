@@ -9,13 +9,13 @@ function RegisterPage() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-
+  
     const requestBody = {
       username,
       password,
-      role
+      role,
     };
-
+  
     try {
       const response = await fetch("http://localhost:7779/api/auth/register", {
         method: "POST",
@@ -24,15 +24,26 @@ function RegisterPage() {
         },
         body: JSON.stringify(requestBody),
       });
-
+  
       if (response.ok) {
-        alert("Registered successfully!");
+        const responseData = await response.json();
         
+        // Assuming the response contains the userId after successful registration
+        const userId = responseData.userId; // Make sure the backend returns this field
+        
+        // Save userId in sessionStorage
+        sessionStorage.setItem("userId", userId);
+        console.log(sessionStorage.getItem("userId"));
+
+        
+  
+        alert("Registered successfully!");
+  
         // Redirect based on role
         if (role === "Student") {
-          navigate("/student-details"); 
+          navigate("/student-details");
         } else if (role === "Tutor") {
-          navigate("/tutor-details"); 
+          navigate("/tutor-details");
         }
       } else {
         const errorData = await response.json();
@@ -43,6 +54,7 @@ function RegisterPage() {
       alert("An error occurred. Please try again later.");
     }
   };
+  
 
   // Inline styles for the full-page background image
   const pageStyle = {

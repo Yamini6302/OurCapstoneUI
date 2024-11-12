@@ -20,17 +20,30 @@ function StudentDetails() {
 
   const handleNext = (event) => {
     event.preventDefault();
-    console.log(student);
+    
+    // Retrieve userId from sessionStorage
+    const userId = sessionStorage.getItem("userId");
+    
+    if (!userId) {
+      console.error("User ID not found in sessionStorage");
+      return;
+    }
+    
+    // Add userId to the student object
+    const studentWithUserId = { ...student, userId };
   
+    console.log(studentWithUserId); // Log student data with userId
+  
+    // Send the student data (with userId) to the backend
     fetch(baseUrl, {
       method: "POST",
-      body: JSON.stringify(student),
+      body: JSON.stringify(studentWithUserId),
       headers: { "Content-Type": "application/json" },
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.studentId) { // Assuming data.id is the student ID; update if necessary
-          sessionStorage.setItem("studentId", data.studentId);
+        if (data.studentId) { // Assuming data.studentId is the student ID returned by the backend
+          sessionStorage.setItem("studentId", data.studentId); // Store studentId in sessionStorage
           navigate("/Dashboard");
         } else {
           console.error("Student ID not found in response:", data);
@@ -38,7 +51,9 @@ function StudentDetails() {
       })
       .catch((error) => {
         console.error("Error registering student:", error);
-      });}
+      });
+  };
+  
     
 
   return (
