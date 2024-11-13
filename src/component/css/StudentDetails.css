@@ -1,4 +1,7 @@
 /* Main Container */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
 .body{
     background-color: #f4f4f4;
 }
@@ -34,9 +37,13 @@
   /* Form Heading */
   .form-heading {
     font-size: 2rem;
-    color: #333;
-    margin-bottom: 20px;
+   
+    margin-bottom:70px;
+    padding-bottom: 40px;
     text-align: center;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    color:#180161 !important;
+
   }
   
   /* Input container (floating labels) */
@@ -59,7 +66,7 @@
   
   /* Focused input styling */
   .input-container input:focus {
-    border-color: #4CAF50; /* Green border when focused */
+    border-color: #FB773C  !important; /* Green border when focused */
     background-color: #fff;
   }
   
@@ -80,7 +87,7 @@
   .input-container input:not(:placeholder-shown) + label {
     top: -10px;
     font-size: 0.9rem;
-    color: #4CAF50;
+    color: #FB773C !important;
   }
   
   /* Placeholder styling for date input */
@@ -93,7 +100,7 @@
   /* Button */
   .next-btn {
     padding: 12px;
-    background-color: #4CAF50;
+    background-color: #FB773C !important;
     color: white;
     border: none;
     border-radius: 5px;
@@ -104,7 +111,7 @@
   }
   
   .next-btn:hover {
-    background-color: #45a049;
+    background-color: #FB773C !important;
   }
   
   /* Please enter the details text */
@@ -146,5 +153,50 @@
   /* .input-container input[type="date"]::-webkit-calendar-picker-indicator {
     display: none; Hide the calendar icon
   } */
-  
+  /* Input container for Date of Birth */
+.input-container input[type="date"] {
+  color: transparent; /* Initially hides the date text */
+}
+
+.input-container input[type="date"]:focus,
+.input-container input[type="date"]:valid {
+  color: black; /* Shows the text when input is focused or has a value */
+}
+
+/* Floating label effect for Date of Birth */
+.input-container label {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  color: #aaa;
+  pointer-events: none;
+  transition: 0.2s ease all;
+}
+
+/* Move label above when focused or has a value */
+.input-container input:focus + label,
+.input-container input:not(:placeholder-shown) + label {
+  top: -10px;
+  font-size: 0.9rem;
+  color: #FB773C !important;
+}
+/* Logo and App Name Container */
+.logo-container {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top: 20px; /* Adjust to position logo vertically */
+  left: 20px; /* Adjust to position logo horizontally */
+  z-index: 10;
+}
+
+.app-logo {
+  width: 85px; /* Adjust logo size */
+  height: auto;
+  margin-right: 10px;
+}
+
+
  

@@ -60,7 +60,7 @@
 /* Focused input styling */
 .input-container input:focus,
 .input-container textarea:focus {
-    border-color: #4CAF50;
+    border-color: #FB773C;
     background-color: #fff;
 }
 
@@ -83,7 +83,7 @@
 .input-container textarea:not(:placeholder-shown) + label {
     top: -10px;
     font-size: 0.9rem;
-    color: #4CAF50;
+    color: #FB773C;
 }
 
 /* Placeholder styling */
@@ -97,7 +97,7 @@
 /* Button */
 .next-btn {
     padding: 12px;
-    background-color: #4CAF50;
+    background-color: #FB773C;
     color: white;
     border: none;
     border-radius: 5px;
@@ -108,7 +108,7 @@
 }
 
 .next-btn:hover {
-    background-color: #45a049;
+    background-color: #FB773C;
 }
 
 /* Details text */
@@ -138,3 +138,18 @@
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+/* Logo and App Name Container */
+.logo-container {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    top: 20px; /* Adjust to position logo vertically */
+    left: 20px; /* Adjust to position logo horizontally */
+    z-index: 10;
+  }
+  
+  .app-logo {
+    width: 85px; /* Adjust logo size */
+    height: auto;
+    margin-right: 10px;
+  }
