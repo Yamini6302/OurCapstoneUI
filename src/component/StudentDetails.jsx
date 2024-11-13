@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./css/StudentDetails.css"; 
+import "./css/StudentDetails.css";
+import Lottie from "react-lottie";
+import 'react-calendar/dist/Calendar.css';
 
 const baseUrl = "http://localhost:7778/api/student";
-
 
 function StudentDetails() {
   const [student, setStudent] = useState({
     studentName: "",
     dob: "",
   });
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleInputChange = (event) => {
@@ -18,91 +19,103 @@ function StudentDetails() {
     setStudent({ ...student, [name]: value });
   };
 
-  const handleNext = (event) => {
+  const handleNext = async (event) => {
     event.preventDefault();
-    
-    // Retrieve userId from sessionStorage
+
     const userId = sessionStorage.getItem("userId");
-    
     if (!userId) {
       console.error("User ID not found in sessionStorage");
+      alert("User ID is missing. Please log in again.");
       return;
     }
-    
-    // Add userId to the student object
+
     const studentWithUserId = { ...student, userId };
-  
-    console.log(studentWithUserId); // Log student data with userId
-  
-    // Send the student data (with userId) to the backend
-    fetch(baseUrl, {
-      method: "POST",
-      body: JSON.stringify(studentWithUserId),
-      headers: { "Content-Type": "application/json" },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.studentId) { // Assuming data.studentId is the student ID returned by the backend
-          sessionStorage.setItem("studentId", data.studentId); // Store studentId in sessionStorage
-          navigate("/Dashboard");
-        } else {
-          console.error("Student ID not found in response:", data);
-        }
-      })
-      .catch((error) => {
-        console.error("Error registering student:", error);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(baseUrl, {
+        method: "POST",
+        body: JSON.stringify(studentWithUserId),
+        headers: { "Content-Type": "application/json" },
       });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (data.studentId) {
+        sessionStorage.setItem("studentId", data.studentId);
+        navigate("/Dashboard");
+      } else {
+        console.error("Student ID not found in response:", data);
+        alert("Failed to register student. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error registering student:", error);
+      alert("An error occurred while registering the student. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-  
-    
 
   return (
     <div className="register-container">
-      {/* Form Container */}
-      <div className="form-container">
-        <h3 className="form-heading">Student Registration</h3>
-        <div className="details-text">Please enter the details</div>
+      {/* Logo and App Name Section */}
+      <div className="logo-container">
+        <img
+          src="src/assets/logo (1).png" // Replace with your logo path
+          alt="App Logo"
+          className="app-logo"
+        />
+        
+      </div>
 
-        <form onSubmit={(e)=>handleNext(e)}>
-          {/* Student Name Input */}
+      <div className="form-container">
+        <h4 className="form-heading">Tell Us About Yourself <br/>Future Scholar!!</h4>
+
+        <form onSubmit={handleNext}>
           <div className="input-container">
             <input
               type="text"
               id="studentName"
-              name="studentName"  
+              name="studentName"
               value={student.studentName}
-              onChange={(e)=>handleInputChange(e)}
+              onChange={handleInputChange}
               required
-              placeholder=" " // Placeholder remains empty to show floating label
+              placeholder=" "
             />
             <label htmlFor="studentName">Student Name</label>
           </div>
 
-          {/* Date of Birth Input */}
           <div className="input-container">
             <input
               type="date"
               id="dob"
-              name="dob" 
+              name="dob"
               value={student.dob}
-              onChange={(e)=>handleInputChange(e)}
+              onChange={handleInputChange}
               required
-              placeholder="" // Show placeholder initially
+              placeholder=" "
             />
             <label htmlFor="dob">Date of Birth</label>
           </div>
 
-          <button type="submit" className="next-btn">
-            Next
+          <button type="submit" className="next-btn" disabled={isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Next"}
           </button>
         </form>
       </div>
 
-      {/* Image Container */}
       <div className="image-container">
-        <img
-          src="https://images.unsplash.com/photo-1622673038079-de1ddac26c16?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8Ym9va3N8ZW58MHwxfDB8fHww"
-          alt="Student"
+        <Lottie
+          options={{
+            loop: true,
+            autoplay: true,
+            path: "https://lottie.host/c72da778-68f5-4db9-bf8e-8c6c7e0258f1/ghm8H2Bn1j.json",
+          }}
+          height={400}
+          width={400}
         />
       </div>
     </div>

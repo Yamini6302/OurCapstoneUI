@@ -60,9 +60,17 @@ function TutorDetails() {
 
   return (
     <div className="register-container">
+       {/* Logo and App Name Section */}
+       <div className="logo-container">
+        <img
+          src="src/assets/logo (1).png" // Replace with your logo path
+          alt="App Logo"
+          className="app-logo"
+        />
+        </div>
       <div className="form-container">
-        <h3 className="form-heading">Tutor Registration</h3>
-        <div className="details-text">Please enter the details</div>
+        <h3 className="form-heading">Welcome, Mentor!<br/> Let's Build Your Profile</h3>
+     
 
         <form onSubmit={handleNext}>
           <div className="input-container">
@@ -101,7 +109,7 @@ function TutorDetails() {
           options={{
             loop: true,
             autoplay: true,
-            path: "https://lottie.host/730c08e2-45e3-44fe-81bb-e9fc40db8f4c/dOsP3Ryq0e.json",
+            path: "https://lottie.host/e35ec040-4458-4998-abe4-6bef6095409e/s55gBLhCYN.json",
           }}
           height={400}
           width={400}
