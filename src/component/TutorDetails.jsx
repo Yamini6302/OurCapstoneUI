@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./css/StudentDetails.css";
+import "./css/TutorDetails.css";
+import Lottie from "react-lottie";
 
 const baseUrl = "http://localhost:7777/api/tutor";
 
@@ -9,7 +10,7 @@ function TutorDetails() {
     tutorName: "",
     details: "",
   });
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleInputChange = (event) => {
@@ -17,88 +18,93 @@ function TutorDetails() {
     setTutor({ ...tutor, [name]: value });
   };
 
-  const handleNext = (event) => {
+  const handleNext = async (event) => {
     event.preventDefault();
-    
-    // Retrieve userId from sessionStorage
+
     const userId = sessionStorage.getItem("userId");
-    
     if (!userId) {
       console.error("User ID not found in sessionStorage");
+      alert("User ID is missing. Please log in again.");
       return;
     }
-    
-    // Add userId to the tutor object
+
     const tutorWithUserId = { ...tutor, userId };
-  
-    console.log(tutorWithUserId); // Log tutor data with userId
-  
-    // Send the tutor data (with userId) to the backend
-    fetch(baseUrl, {
-      method: "POST",
-      body: JSON.stringify(tutorWithUserId),
-      headers: { "Content-Type": "application/json" },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.tutorId) { // Assuming data.tutorId is the tutor ID returned by the backend
-          sessionStorage.setItem("tutorId", data.tutorId); // Store tutorId in sessionStorage
-          navigate("/Dashboard");
-        } else {
-          console.error("Tutor ID not found in response:", data);
-        }
-      })
-      .catch((error) => {
-        console.error("Error registering tutor:", error);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(baseUrl, {
+        method: "POST",
+        body: JSON.stringify(tutorWithUserId),
+        headers: { "Content-Type": "application/json" },
       });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (data.tutorId) {
+        sessionStorage.setItem("tutorId", data.tutorId);
+        navigate("/Dashboard");
+      } else {
+        console.error("Tutor ID not found in response:", data);
+        alert("Failed to register tutor. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error registering tutor:", error);
+      alert("An error occurred while registering the tutor. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="register-container">
-      {/* Form Container */}
       <div className="form-container">
         <h3 className="form-heading">Tutor Registration</h3>
         <div className="details-text">Please enter the details</div>
 
-        <form onSubmit={(e) => handleNext(e)}>
-          {/* Tutor Name Input */}
+        <form onSubmit={handleNext}>
           <div className="input-container">
             <input
               type="text"
               id="tutorName"
               name="tutorName"
               value={tutor.tutorName}
-              onChange={(e) => handleInputChange(e)}
+              onChange={handleInputChange}
               required
-              placeholder=" " // Placeholder remains empty to show floating label
+              placeholder=" "
             />
             <label htmlFor="tutorName">Tutor Name</label>
           </div>
 
-          {/* Tutor Details Input */}
           <div className="input-container">
             <textarea
               id="details"
               name="details"
               value={tutor.details}
-              onChange={(e) => handleInputChange(e)}
+              onChange={handleInputChange}
               required
-              placeholder=" " // Placeholder remains empty to show floating label
+              placeholder=" "
             />
             <label htmlFor="details">Details</label>
           </div>
 
-          <button type="submit" className="next-btn">
-            Next
+          <button type="submit" className="next-btn" disabled={isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Next"}
           </button>
         </form>
       </div>
 
-      {/* Image Container */}
       <div className="image-container">
-        <img
-          src="https://images.unsplash.com/photo-1592357041689-774489460617?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8dHV0b3J8ZW58MHwxfDB8fHww"
-          alt="Tutor"
+        <Lottie
+          options={{
+            loop: true,
+            autoplay: true,
+            path: "https://lottie.host/730c08e2-45e3-44fe-81bb-e9fc40db8f4c/dOsP3Ryq0e.json",
+          }}
+          height={400}
+          width={400}
         />
       </div>
     </div>
