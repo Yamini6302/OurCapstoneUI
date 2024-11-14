@@ -63,7 +63,7 @@ function TutorDetails() {
        {/* Logo and App Name Section */}
        <div className="logo-container">
         <img
-          src="src/assets/logo (1).png" // Replace with your logo path
+          src="src/assets/logo.png" // Replace with your logo path
           alt="App Logo"
           className="app-logo"
         />

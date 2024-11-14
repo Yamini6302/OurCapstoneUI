@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./css/StudentDetails.css";
 import Lottie from "react-lottie";
-import 'react-calendar/dist/Calendar.css';
+
 
 const baseUrl = "http://localhost:7778/api/student";
 
@@ -64,7 +64,7 @@ function StudentDetails() {
       {/* Logo and App Name Section */}
       <div className="logo-container">
         <img
-          src="src/assets/logo (1).png" // Replace with your logo path
+          src="src/assets/logo.png" // Replace with your logo path
           alt="App Logo"
           className="app-logo"
         />
@@ -123,3 +123,4 @@ function StudentDetails() {
 }
 
 export default StudentDetails;
+
