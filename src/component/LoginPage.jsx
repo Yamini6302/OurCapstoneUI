@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; 
+import Lottie from "lottie-react"; // Import Lottie
+import animationData from './animations/login.json'; // Update with your local Lottie animation file or URL
 
 function LoginPage() {
   const [username, setUsername] = useState("");
@@ -37,34 +39,19 @@ function LoginPage() {
     }
 };
 
-  // Inline styles for the full-page background image
-  const pageStyle = {
-    height: "100vh", 
-    width: "100vw",   
-    backgroundImage: "url('https://media.istockphoto.com/id/1460007178/photo/library-books-on-table-and-background-for-studying-learning-and-research-in-education-school.webp?a=1&b=1&s=612x612&w=0&k=20&c=QsnFz7rujdYTsK1Ts5IpkyTHCWb_ZtJONvTOAW2hPCI=')",
-    backgroundSize: "cover",  
-    backgroundPosition: "center", 
-    display: "flex", 
-    justifyContent: "center",
-    alignItems: "center",  
-    margin: "0",  
-    padding: "0", 
-  };
-
-  // Form container styles
-  const formStyle = {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",  
-    padding: "30px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-    width: "100%",  
-    maxWidth: "400px",  
-    textAlign: "left", 
-  };
-
   return (
-    <div style={pageStyle}>
-      <div style={formStyle}>
+    <div style={styles.container}>
+      {/* Lottie Animation Background */}
+      <Lottie
+          animationData={animationData} // Path to the correct JSON animation
+          loop={true}
+          autoplay={true}
+          style={styles.lottieBackground}
+        />
+
+
+      {/* Form Container */}
+      <div style={styles.formStyle}>
         <h3>Login</h3>
         <form onSubmit={handleLogin}>
           <div className="form-group">
@@ -123,5 +110,35 @@ function LoginPage() {
     </div>
   );
 }
+
+// Styles for container and form
+const styles = {
+  container: {
+    position: "relative",
+    height: "100vh", 
+    width: "100vw",   
+    overflow: "hidden", // Prevent overflow of content
+  },
+  lottieBackground: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    zIndex: -1, // Ensure the animation is in the background
+  },
+  formStyle: {
+    backgroundColor: "rgba(255, 255, 255, 0.9)",  
+    padding: "30px",
+    borderRadius: "8px",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+    width: "100%",  
+    maxWidth: "400px",  
+    textAlign: "left", 
+    position: "relative", // Ensure form is above the background animation
+    zIndex: 1,
+    margin: 'auto', // Center the form horizontally
+  }
+};
 
 export default LoginPage;
