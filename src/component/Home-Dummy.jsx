@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; 
 
-function Dashboard({ userId, roleId, roleType }) { // Receive userId, roleId, and roleType as props
+function HomePage({ userId, roleId, roleType }) { 
   const [courses, setCourses] = useState([]);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch courses
@@ -54,13 +56,21 @@ function Dashboard({ userId, roleId, roleType }) { // Receive userId, roleId, an
       <header style={styles.header}>
         <div style={styles.headerLeft}>
           <img src="./logo.png" alt="Logo" style={styles.logo} />
-          <span style={styles.platformName}>Quick Learn</span>
+          <span style={styles.platformName}>
+            <span className="quick">Quick</span> 
+            <span className="quick">Learn</span> 
+          </span>
         </div>
         <div style={styles.headerCenter}>
           <input type="text" placeholder="Search..." style={styles.searchBar} />
+        </div>     
+
+        <div style={styles.headerRight}>
+          <button style={styles.button} onClick={() => navigate("/login")}>Login</button>
+          <button style={styles.button} onClick={() => navigate("/register")}>Register</button>
         </div>
       </header>
-
+      
       <div style={styles.mainContent}>
         {/* Fixed Sidebar with Toggle Button at the Top */}
         <div style={styles.smallSidebar}>
@@ -104,6 +114,21 @@ function Dashboard({ userId, roleId, roleType }) { // Receive userId, roleId, an
           </div>
         </div>
       </div>
+
+      {/* CSS for Animation */}
+      <style>{`
+        .quick {
+          display: inline-block;
+          animation: dance 1s infinite alternate;
+        }
+
+        @keyframes dance {
+          0% { transform: translateX(6); }
+          50% { transform: translateX(4px); }
+          100% { transform: translateX(-4px); }
+        }
+      `}</style>
+
     </div>
   );
 }
@@ -129,12 +154,25 @@ const styles = {
     alignItems: "center",
   },
   logo: {
-    height: "40px",
+    height: "80px", // Increased size for logo
     marginRight: "10px",
   },
   platformName: {
     fontSize: "1.5rem",
     fontWeight: "bold",
+  },
+  headerRight: {
+    display: "flex",
+    alignItems: "center",
+  },
+  button: {
+    marginLeft: "10px",
+    padding: "8px 12px",
+    borderRadius: "4px",
+    border: "none",
+    backgroundColor: "#FB773C", // Button color
+    color: "#FFFFFF",
+    cursor: "pointer",
   },
   headerCenter: {
     display: "flex",
@@ -178,50 +216,56 @@ const styles = {
     boxShadow: "0 4px 8px rgba(0,0,0,0.3)",
   },
   userDetails: {
-    textAlign: "center",
-    marginBottom: "20px",
-    color: "#FFFFFF",
-  },
-  avatar: {
-    width: "60px",
-    height: "60px",
-    borderRadius: "50%",
-    marginBottom: "10px",
-  },
-  sidebarButton: {
-    display: "flex",
-    alignItems: "center",
-    margin: "10px 0",
-    padding: "10px",
-    borderRadius: "4px",
-    backgroundColor: "#FB773C",
-    color: "#FFFFFF",
-    cursor: "pointer",
-    border: "none",
-    textAlign: "left",
-  },
-  rightColumn: {
-    padding: "20px",
-    overflowY: "auto",
-  },
-  welcomeCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    padding: "20px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-    marginBottom: "20px",
-  },
-  courseList: {
-    maxHeight: "400px",
-    overflowY: "auto",
-  },
-  courseCard: {
-    backgroundColor: "#F9F9F9",
-    padding: "15px",
-    marginBottom: "10px",
-    borderRadius: "4px",
-    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-  },
+   textAlign:"center", 
+   marginBottom:"20px", 
+   color:"#FFFFFF"
+},
+  
+avatar:{
+   width:"60px", 
+   height:"60px", 
+   borderRadius:"50%", 
+   marginBottom:"10px"
+},
+  
+sidebarButton:{
+   display:"flex", 
+   alignItems:"center", 
+   margin:"10px", 
+   padding:"10px", 
+   borderRadius:"4px", 
+   backgroundColor:"#FB773C", 
+   color:"#FFFFFF", 
+   cursor:"pointer", 
+   border:"none", 
+   textAlign:"left"
+},
+  
+rightColumn:{
+   padding:"20px", 
+   overflowY:"auto"
+},
+  
+welcomeCard:{
+   backgroundColor:"rgba(255,255,255,0.8)", 
+   padding:"20px", 
+   borderRadius:"8px", 
+   boxShadow:"0 4px rgba(0,0,0,.1)", 
+   marginBottom:"20px"
+},
+  
+courseList:{
+   maxHeight:"400px", 
+   overflowY:"auto"
+},
+  
+courseCard:{
+   backgroundColor:"#F9F9F9", 
+   padding:"15px", 
+   marginBottom:"10px", 
+   borderRadius:"4px", 
+   boxShadow:"0 2px rgba(0,0,0,.1)"
+},
 };
 
-export default Dashboard;
+export default HomePage;
