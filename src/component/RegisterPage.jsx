@@ -1,11 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; 
+import Lottie from "lottie-react"; // Import Lottie
 
 function RegisterPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
+  const [animationData, setAnimationData] = useState(null); // State for Lottie animation data
   const navigate = useNavigate(); 
+
+  // Load the animation data using fetch on component mount
+  useEffect(() => {
+    const fetchAnimation = async () => {
+      const response = await fetch('https://lottie.host/40d8f510-6d07-4562-b01d-696d2860ffcf/eG0n4SiEt6.json');
+      const data = await response.json();
+      setAnimationData(data);
+    };
+
+    fetchAnimation();
+  }, []);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -26,16 +39,13 @@ function RegisterPage() {
       });
   
       if (response.ok) {
-        const responseData = await response.json();
-        
+        const responseData = await response.json();        
         // Assuming the response contains the userId after successful registration
         const userId = responseData.userId; // Make sure the backend returns this field
         
         // Save userId in sessionStorage
         sessionStorage.setItem("userId", userId);
-        console.log(sessionStorage.getItem("userId"));
-
-        
+        console.log(sessionStorage.getItem("userId"));        
   
         alert("Registered successfully!");
   
@@ -54,20 +64,16 @@ function RegisterPage() {
       alert("An error occurred. Please try again later.");
     }
   };
-  
 
-  // Inline styles for the full-page background image
+  // Inline styles for the full-page background
   const pageStyle = {
     height: "100vh", 
     width: "100vw",   
-    backgroundImage: "url('https://media.istockphoto.com/id/1460007178/photo/library-books-on-table-and-background-for-studying-learning-and-research-in-education-school.webp?a=1&b=1&s=612x612&w=0&k=20&c=QsnFz7rujdYTsK1Ts5IpkyTHCWb_ZtJONvTOAW2hPCI=')",
-    backgroundSize: "cover",  
-    backgroundPosition: "center", 
-    display: "flex", 
-    justifyContent: "center",
-    alignItems: "center",  
-    margin: "0",  
-    padding: "0", 
+    position: "relative",
+    overflow: "hidden",
+    display: 'flex',
+    justifyContent: 'center', 
+    alignItems: 'center', 
   };
 
   // Form container styles
@@ -79,12 +85,39 @@ function RegisterPage() {
     width: "100%",  
     maxWidth: "400px",  
     textAlign: "left", 
+    position: "relative", 
+    zIndex: 1,
   };
 
   return (
     <div style={pageStyle}>
+      {/* Lottie Animation Background */}
+      <div className="logo-container">
+        <img
+          src="/logo.png" // Replace with your logo path
+          alt="App Logo"
+          className="app-logo"
+        />
+        </div>
+      {animationData && (
+        <Lottie
+          animationData={animationData}
+          loop={true}
+          autoplay={true}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            zIndex: -1,
+          }}
+        />
+      )}
+
       <div style={formStyle}>
-        <h3>Register</h3>
+        <h3 className="form-heading">Register with Quick Learn</h3>
+        
         <form onSubmit={handleRegister}>
           <div className="form-group">
             <label htmlFor="username">Username</label>
