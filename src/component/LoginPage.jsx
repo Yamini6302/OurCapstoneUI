@@ -1,13 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; 
-import Lottie from "lottie-react"; // Import Lottie
-import animationData from './animations/login.json'; // Update with your local Lottie animation file or URL
+import Lottie from "lottie-react"; 
+
 
 function LoginPage() {
+  const [animationData, setAnimationData] = useState(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const navigate = useNavigate(); 
+
+  // Load the animation data using fetch on component mount
+  useEffect(() => {
+    const fetchAnimation = async () => {
+      const response = await fetch('https://lottie.host/40d8f510-6d07-4562-b01d-696d2860ffcf/eG0n4SiEt6.json');
+      const data = await response.json();
+      setAnimationData(data);
+    };
+
+    fetchAnimation();
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -28,7 +40,7 @@ function LoginPage() {
         });
 
         if (response.ok) {
-            navigate("/home"); // Redirect to home page after successful login
+            navigate("/home"); 
         } else {
             const errorData = await response.json();
             alert(errorData.message || "Invalid username or password.");
@@ -40,19 +52,33 @@ function LoginPage() {
 };
 
   return (
+
+    
     <div style={styles.container}>
       {/* Lottie Animation Background */}
-      <Lottie
-          animationData={animationData} // Path to the correct JSON animation
-          loop={true}
-          autoplay={true}
-          style={styles.lottieBackground}
-        />
 
+      <div className="logo-container">
+        <img
+          src="/logo.png" // Replace with your logo path
+          alt="App Logo"
+          className="app-logo"
+        />
+        
+      </div>
+      
+        {animationData && (
+          <Lottie
+            animationData={animationData}
+            loop={true}
+            autoplay={true}
+            style={styles.lottieBackground}
+          />
+        )}
+    
 
       {/* Form Container */}
       <div style={styles.formStyle}>
-        <h3>Login</h3>
+        <h3>Login To Quick Learn </h3>
         <form onSubmit={handleLogin}>
           <div className="form-group">
             <label htmlFor="username">Username</label>
@@ -117,7 +143,10 @@ const styles = {
     position: "relative",
     height: "100vh", 
     width: "100vw",   
-    overflow: "hidden", // Prevent overflow of content
+    overflow: "hidden", 
+    display: 'flex',
+    justifyContent: 'center', 
+    alignItems: 'center', 
   },
   lottieBackground: {
     position: "absolute",
@@ -125,7 +154,7 @@ const styles = {
     left: 0,
     width: "100%",
     height: "100%",
-    zIndex: -1, // Ensure the animation is in the background
+    zIndex: -1, 
   },
   formStyle: {
     backgroundColor: "rgba(255, 255, 255, 0.9)",  
@@ -135,9 +164,8 @@ const styles = {
     width: "100%",  
     maxWidth: "400px",  
     textAlign: "left", 
-    position: "relative", // Ensure form is above the background animation
+    position: "relative", 
     zIndex: 1,
-    margin: 'auto', // Center the form horizontally
   }
 };
 
