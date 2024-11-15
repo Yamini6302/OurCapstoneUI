@@ -9,6 +9,7 @@ function RegisterPage() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [usernameError, setUsernameError] = useState(""); // Track username-specific errors
   const navigate = useNavigate();
 
   // Handle register logic
@@ -31,12 +32,31 @@ function RegisterPage() {
         // Redirect to login page
         setTimeout(() => navigate("/login"), 2000); // After 2 seconds, navigate to login page
       } else {
-        const errorData = await response.json();
-        setErrorMessage(errorData.message || "Error during registration.");
+        const errorText = await response.text();
+        console.error("Error response:", errorText);
+
+        let errorData = {};
+
+        try {
+          errorData = JSON.parse(errorText);  // Attempt to parse error message as JSON
+        } catch (error) {
+          errorData.message = errorText;  // Fallback to raw error text
+        }
+
+        const errorMessage = errorData.message || "Error during registration.";
+
+        if (errorMessage.includes("Username already exists")) {
+          setUsernameError("This email is already registered. Please choose another one.");
+          setErrorMessage(""); // Clear general error message
+        } else {
+          setErrorMessage(errorMessage);
+          setUsernameError(""); // Reset username error if it's another issue
+        }
       }
     } catch (error) {
       console.error("Error during registration:", error);
       setErrorMessage("An error occurred. Please try again later.");
+      setUsernameError("");  // Reset username error if there's a network error
     }
   };
 
@@ -71,6 +91,8 @@ function RegisterPage() {
               placeholder=" "
             />
             <label htmlFor="username">Email</label>
+            {/* Display username-specific error message if it exists */}
+            {usernameError && <div className="input-error">{usernameError}</div>}
           </div>
 
           <div className="input-container">
