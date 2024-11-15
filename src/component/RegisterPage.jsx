@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; 
-import Lottie from "lottie-react"; // Import Lottie
+import Lottie from "lottie-react"; 
 
 function RegisterPage() {
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState(""); // Email field
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const [animationData, setAnimationData] = useState(null); // State for Lottie animation data
@@ -45,7 +45,6 @@ function RegisterPage() {
         
         // Save userId in sessionStorage
         sessionStorage.setItem("userId", userId);
-        console.log(sessionStorage.getItem("userId"));        
   
         alert("Registered successfully!");
   
@@ -86,85 +85,88 @@ function RegisterPage() {
     maxWidth: "400px",  
     textAlign: "left", 
     position: "relative", 
-    zIndex: 1,
-  };
+   zIndex :1,
+   margin:"auto"
+    
+};
 
-  return (
-    <div style={pageStyle}>
-      {/* Lottie Animation Background */}
-      <div className="logo-container">
-        <img
-          src="/logo.png" // Replace with your logo path
-          alt="App Logo"
-          className="app-logo"
-        />
+return (
+  <div style={pageStyle}>
+  {/* Lottie Animation Background */}
+  <div className="logo-container">
+          <img
+            src="/logo.png" // Replace with your logo path
+            alt="App Logo"
+            className="app-logo"
+          />
+          
         </div>
-      {animationData && (
-        <Lottie
+    {animationData && (
+          <Lottie
           animationData={animationData}
           loop={true}
           autoplay={true}
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            zIndex: -1,
+          position:'absolute',
+          top :0,
+          left :0,
+          width:'100%',
+          height:'100%',
+          zIndex:-1,
           }}
-        />
-      )}
+          />
+          )}
 
-      <div style={formStyle}>
-        <h3 className="form-heading">Register with Quick Learn</h3>
-        
+    <div style={formStyle}>
+      <h3 className="form-heading">Register with Quick Learn</h3>
+
         <form onSubmit={handleRegister}>
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
-            <input
-              type="text"
-              id="username"
-              className="form-control"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
+<div className="form-group">
+<label htmlFor="username">Email</label>
+<input
+type="email" // Change to email type for validation
+id="username"
+className="form-control"
+value={username}
+onChange={(e) => setUsername(e.target.value)}
+required
+/>
+</div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              className="form-control"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+<div className="form-group">
+<label htmlFor="password">Password</label>
+<input
+type="password"
+id="password"
+className="form-control"
+value={password}
+onChange={(e) => setPassword(e.target.value)}
+required
+/>
+</div>
 
-          <div className="form-group">
-            <label htmlFor="role">Role</label>
-            <select
-              id="role"
-              className="form-control"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              required
-            >
-              <option value="">Select a role</option>
-              <option value="Student">Student</option>
-              <option value="Tutor">Tutor</option>
-            </select>
-          </div>
+<div className="form-group">
+<label htmlFor="role">Role</label>
+<select
+id="role"
+className="form-control"
+value={role}
+onChange={(e) => setRole(e.target.value)}
+required
+>
+<option value="">Select a role</option>
+<option value="Student">Student</option>
+<option value="Tutor">Tutor</option>
+</select>
+</div>
 
-          <button type="submit" className="btn btn-success mt-3">
-            Register
-          </button>
+<button type="submit" className="btn btn-success mt-3">
+Register
+</button>
         </form>
-      </div>
     </div>
-  );
+  </div>
+);
 }
 
 export default RegisterPage;

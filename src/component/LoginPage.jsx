@@ -2,10 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; 
 import Lottie from "lottie-react"; 
 
-
 function LoginPage() {
   const [animationData, setAnimationData] = useState(null);
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState(""); // This will hold the email
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const navigate = useNavigate(); 
@@ -25,7 +24,7 @@ function LoginPage() {
     e.preventDefault();
 
     const requestBody = {
-        username,
+        username, // This will be treated as an email
         password,
         role
     };
@@ -40,7 +39,7 @@ function LoginPage() {
         });
 
         if (response.ok) {
-            navigate("/home"); 
+            navigate("/home"); // Redirect to home page after successful login
         } else {
             const errorData = await response.json();
             alert(errorData.message || "Invalid username or password.");
@@ -52,12 +51,11 @@ function LoginPage() {
 };
 
   return (
-
-    
     <div style={styles.container}>
       {/* Lottie Animation Background */}
+       {/* Lottie Animation Background */}
 
-      <div className="logo-container">
+       <div className="logo-container">
         <img
           src="/logo.png" // Replace with your logo path
           alt="App Logo"
@@ -66,24 +64,23 @@ function LoginPage() {
         
       </div>
       
-        {animationData && (
-          <Lottie
-            animationData={animationData}
-            loop={true}
-            autoplay={true}
-            style={styles.lottieBackground}
-          />
-        )}
-    
+      {animationData && (
+        <Lottie
+          animationData={animationData}
+          loop={true}
+          autoplay={true}
+          style={styles.lottieBackground}
+        />
+      )}
 
       {/* Form Container */}
       <div style={styles.formStyle}>
-        <h3>Login To Quick Learn </h3>
+        <h3>Login To Quick Learn</h3>
         <form onSubmit={handleLogin}>
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">Email</label>
             <input
-              type="text"
+              type="email" // Change to email type for validation
               id="username"
               className="form-control"
               value={username}
