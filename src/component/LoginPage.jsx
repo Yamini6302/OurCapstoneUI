@@ -14,36 +14,43 @@ function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+  
     const requestBody = { username, password, role };
-
+  
     try {
-      const response = await fetch("http://localhost:7779/api/auth/login", {
+      // Step 1: Login request to get the token
+      const loginResponse = await fetch("http://localhost:7779/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
       });
-
-      // Check if the response is a plain text token
-      const textResponse = await response.text();
-
-      if (response.ok) {
-        // If the response is the token (plain text)
-        localStorage.setItem("authToken", textResponse);
-
-        // Assuming the response contains user information (including user ID)
-        const userData = JSON.parse(textResponse); // Assuming this returns a JSON with user details
-        sessionStorage.setItem("userId", userData.userId); // Store userId in sessionStorage
-
-        // Redirect based on the role
-        if (role === "Student") {
-          navigate("/student-dashboard");
-        } else if (role === "Tutor") {
-          navigate("/tutor-dashboard");
+  
+      const loginTextResponse = await loginResponse.text(); // Get the token as plain text
+  
+      if (loginResponse.ok) {
+        // Step 2: After successful login, fetch the userId from the backend
+        const userIdResponse = await fetch(`http://localhost:7779/api/auth/user-id/${username}`);
+  
+        if (userIdResponse.ok) {
+          const userId = await userIdResponse.text();
+          sessionStorage.setItem("userId", userId);  // Store userId in sessionStorage
+          localStorage.setItem("authToken", loginTextResponse);  // Store JWT token
+  
+          console.log("JWT Token:", loginTextResponse);
+          console.log("User ID:", userId);
+  
+          // Redirect based on role
+          if (role === "Student") {
+            navigate("/student-dashboard");
+          } else if (role === "Tutor") {
+            navigate("/tutor-dashboard");
+          }
+        } else {
+          setErrorMessage("Unable to fetch user ID.");
         }
       } else {
-        // Handle server-side error responses
-        const errorData = JSON.parse(textResponse); // Parse error message from response text
+        // Handle invalid login response
+        const errorData = await loginResponse.json();
         setErrorMessage(errorData.message || "Invalid username, password, or role.");
       }
     } catch (error) {
@@ -51,7 +58,7 @@ function LoginPage() {
       setErrorMessage("An error occurred. Please try again later.");
     }
   };
-
+  
   const lottieOptions = {
     loop: true,
     autoplay: true,
@@ -60,15 +67,13 @@ function LoginPage() {
 
   return (
     <div className="register-container">
-      {/* Logo and App Name */}
       <div className="logo-container">
-        <img src="/logo.png" alt="App Logo" className="app-logo" />
+        <img src="src/logo.png" alt="App Logo" className="app-logo" />
       </div>
 
       <div className="form-container">
         <h4 className="form-heading">Login To Quick Learn</h4>
 
-        {/* Error message display inside form container */}
         {errorMessage && <div className="error-message">{errorMessage}</div>}
 
         <form onSubmit={handleLogin}>
