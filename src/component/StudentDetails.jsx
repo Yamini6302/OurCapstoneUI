@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./css/StudentDetails.css";
 import Lottie from "react-lottie";
-import 'react-calendar/dist/Calendar.css';
 
 const baseUrl = "http://localhost:7778/api/student";
 
@@ -12,6 +11,7 @@ function StudentDetails() {
     dob: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dobError, setDobError] = useState(""); // State to track DOB error message
   const navigate = useNavigate();
 
   const handleInputChange = (event) => {
@@ -19,8 +19,27 @@ function StudentDetails() {
     setStudent({ ...student, [name]: value });
   };
 
+  const validateAge = (dob) => {
+    const today = new Date();
+    const birthDate = new Date(dob);
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age >= 5; // The student must be at least 5 years old
+  };
+
   const handleNext = async (event) => {
     event.preventDefault();
+
+    // Validate if the age is at least 5
+    if (!validateAge(student.dob)) {
+      setDobError("Invalid Date Of Birth.");
+      return;
+    }
+
+    setDobError(""); // Clear error if age is valid
 
     const userId = sessionStorage.getItem("userId");
     if (!userId) {
@@ -64,11 +83,10 @@ function StudentDetails() {
       {/* Logo and App Name Section */}
       <div className="logo-container">
         <img
-          src="src/assets/logo (1).png" // Replace with your logo path
+          src="src/assets/logo.png" // Replace with your logo path
           alt="App Logo"
           className="app-logo"
         />
-        
       </div>
 
       <div className="form-container">
@@ -100,6 +118,8 @@ function StudentDetails() {
             />
             <label htmlFor="dob">Date of Birth</label>
           </div>
+
+          {dobError && <div className="error-message">{dobError}</div>}
 
           <button type="submit" className="next-btn" disabled={isSubmitting}>
             {isSubmitting ? "Submitting..." : "Next"}

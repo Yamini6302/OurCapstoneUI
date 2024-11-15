@@ -1,114 +1,107 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; 
-import Lottie from "lottie-react"; 
-
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Lottie from "react-lottie";
+import "./css/StudentDetails.css"; // Reusing CSS from StudentDetails for styling consistency
+import animationData from "./animations/login.json"; // Importing Lottie animation
 
 function LoginPage() {
-  const [animationData, setAnimationData] = useState(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
-  const navigate = useNavigate(); 
+  const [errorMessage, setErrorMessage] = useState("");
 
-  // Load the animation data using fetch on component mount
-  useEffect(() => {
-    const fetchAnimation = async () => {
-      const response = await fetch('https://lottie.host/40d8f510-6d07-4562-b01d-696d2860ffcf/eG0n4SiEt6.json');
-      const data = await response.json();
-      setAnimationData(data);
-    };
-
-    fetchAnimation();
-  }, []);
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    const requestBody = {
-        username,
-        password,
-        role
-    };
+    const requestBody = { username, password, role };
 
     try {
-        const response = await fetch("http://localhost:7779/api/auth/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(requestBody),
-        });
+      const response = await fetch("http://localhost:7779/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
 
-        if (response.ok) {
-            navigate("/home"); 
-        } else {
-            const errorData = await response.json();
-            alert(errorData.message || "Invalid username or password.");
+      // Check if the response is a plain text token
+      const textResponse = await response.text();
+
+      if (response.ok) {
+        // If the response is the token (plain text)
+        localStorage.setItem("authToken", textResponse);
+
+        // Assuming the response contains user information (including user ID)
+        const userData = JSON.parse(textResponse); // Assuming this returns a JSON with user details
+        sessionStorage.setItem("userId", userData.userId); // Store userId in sessionStorage
+
+        // Redirect based on the role
+        if (role === "Student") {
+          navigate("/student-dashboard");
+        } else if (role === "Tutor") {
+          navigate("/tutor-dashboard");
         }
+      } else {
+        // Handle server-side error responses
+        const errorData = JSON.parse(textResponse); // Parse error message from response text
+        setErrorMessage(errorData.message || "Invalid username, password, or role.");
+      }
     } catch (error) {
-        console.error("Error during login:", error);
-        alert("An error occurred. Please try again later.");
+      console.error("Error during login:", error);
+      setErrorMessage("An error occurred. Please try again later.");
     }
-};
+  };
+
+  const lottieOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: animationData,
+  };
 
   return (
-
-    
-    <div style={styles.container}>
-      {/* Lottie Animation Background */}
-
+    <div className="register-container">
+      {/* Logo and App Name */}
       <div className="logo-container">
-        <img
-          src="/logo.png" // Replace with your logo path
-          alt="App Logo"
-          className="app-logo"
-        />
-        
+        <img src="/logo.png" alt="App Logo" className="app-logo" />
       </div>
-      
-        {animationData && (
-          <Lottie
-            animationData={animationData}
-            loop={true}
-            autoplay={true}
-            style={styles.lottieBackground}
-          />
-        )}
-    
 
-      {/* Form Container */}
-      <div style={styles.formStyle}>
-        <h3>Login To Quick Learn </h3>
+      <div className="form-container">
+        <h4 className="form-heading">Login To Quick Learn</h4>
+
+        {/* Error message display inside form container */}
+        {errorMessage && <div className="error-message">{errorMessage}</div>}
+
         <form onSubmit={handleLogin}>
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
+          <div className="input-container">
             <input
-              type="text"
+              type="email"
               id="username"
-              className="form-control"
+              name="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              placeholder=" "
             />
+            <label htmlFor="username">Email</label>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
+          <div className="input-container">
             <input
               type="password"
               id="password"
-              className="form-control"
+              name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              placeholder=" "
             />
+            <label htmlFor="password">Password</label>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="role">Role</label>
+          <div className="input-container">
             <select
               id="role"
-              className="form-control"
+              name="role"
               value={role}
               onChange={(e) => setRole(e.target.value)}
               required
@@ -117,9 +110,10 @@ function LoginPage() {
               <option value="Student">Student</option>
               <option value="Tutor">Tutor</option>
             </select>
+            <label htmlFor="role">Role</label>
           </div>
 
-          <button type="submit" className="btn btn-success mt-3">
+          <button type="submit" className="next-btn">
             Login
           </button>
         </form>
@@ -133,40 +127,12 @@ function LoginPage() {
           </p>
         </div>
       </div>
+
+      <div className="image-container">
+        <Lottie options={lottieOptions} height={400} width={400} />
+      </div>
     </div>
   );
 }
-
-// Styles for container and form
-const styles = {
-  container: {
-    position: "relative",
-    height: "100vh", 
-    width: "100vw",   
-    overflow: "hidden", 
-    display: 'flex',
-    justifyContent: 'center', 
-    alignItems: 'center', 
-  },
-  lottieBackground: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    zIndex: -1, 
-  },
-  formStyle: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",  
-    padding: "30px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-    width: "100%",  
-    maxWidth: "400px",  
-    textAlign: "left", 
-    position: "relative", 
-    zIndex: 1,
-  }
-};
 
 export default LoginPage;
