@@ -1,162 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const styles = {
-  container: {
-    display: "flex",
-    flexDirection: "column",
-    height: "100vh",
-    width: "100vw",
-    margin: 0,
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#180161",
-    padding: "10px 20px",
-    color: "#FFFFFF",
-  },
-  headerLeft: {
-    display: "flex",
-    alignItems: "center",
-  },
-  logo: {
-    height: "60px", // Increased size for logo
-    marginRight: "10px",
-  },
-  platformName: {
-    fontSize: "1.5rem",
-    fontWeight: "bold",
-  },
-  headerRight: {
-    display: "flex",
-    alignItems: "center",
-  },
-  button: {
-    marginLeft: "10px",
-    padding: "8px 12px",
-    borderRadius: "4px",
-    border: "none",
-    backgroundColor: "#FB773C",
-    color: "#FFFFFF",
-    cursor: "pointer",
-  },
-  headerCenter: {
-    display: "flex",
-    justifyContent: "center",
-    width: "100%",
-  },
-  searchBar: {
-    padding: "8px",
-    borderRadius: "4px",
-    border: "1px solid #ccc",
-    width: "300px",
-  },
-  mainContent: {
-    display: "flex",
-    flexGrow: 1,
-  },
-  smallSidebar: {
-    width: "60px",
-    backgroundColor: "#EB3678", // Pink color for the small sidebar
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    paddingTop: "10px",
-    transition: "width 0.3s ease",
-    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)", // Subtle shadow for small sidebar
-  },
-  toggleButton: {
-    width: "40px", // Set width of the button
-    height: "40px", // Set height of the button
-    borderRadius: "4px", // Rounded corners
-    backgroundColor: "#FB773C", // Orange color for the button
-    color: "#FFFFFF", // White color for the symbol
-    cursor: "pointer", // Pointer cursor on hover
-    border: "none", // No border
-    marginBottom: "10px", // Space below the button
-    display: "flex", // Use flexbox to center the content
-    justifyContent: "center", // Center horizontally
-    alignItems: "center", // Center vertically
-    fontSize: "24px", // Set the font size for the symbol
-    textAlign: "center", // Ensure text is centered
-  },
-  expandedSidebar: {
-    width: "250px", // Expanded width
-    backgroundColor: "#EB3678", // Pink
-    display: "flex",
-    flexDirection: "column",
-    padding: "20px",
-    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.3)", // Stronger shadow for expanded sidebar
-    transition: "width 0.3s ease",
-  },
-  userDetails: {
-    textAlign: "center",
-    marginBottom: "20px",
-    color: "#FFFFFF",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-  },
-  avatar: {
-    width: "70px", // Slightly larger avatar
-    height: "70px",
-    borderRadius: "50%",
-    marginBottom: "10px",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    fontSize: "24px",
-    fontWeight: "bold",
-    backgroundColor: "#FB773C", // Orange avatar background
-    color: "#FFFFFF",
-  },
-  tutorName: {
-    fontSize: "16px", // Adjusted font size for the name
-    fontWeight: "bold",
-    color: "#FFFFFF",
-    marginTop: "8px", // Space between avatar and name
-  },
-  sidebarButton: {
-    display: "flex",
-    alignItems: "center",
-    margin: "10px",
-    padding: "10px",
-    borderRadius: "4px",
-    backgroundColor: "#FFFFF", 
-    color: "1A1A1D", 
-    cursor: "pointer",
-    border: "none",
-    width: "100%",
-    justifyContent: "flex-start", // Align text to the left
-    boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.2)", // Subtle shadow for sidebar buttons
-  },
-  rightColumn: {
-    padding: "20px",
-    overflowY: "auto",
-    flexGrow: 1,
-  },
-  welcomeCard: {
-    backgroundColor: "rgba(255,255,255,0.8)",
-    padding: "20px",
-    borderRadius: "8px",
-    boxShadow: "0 4px rgba(0,0,0,.1)",
-    marginBottom: "20px",
-  },
-  courseList: {
-    maxHeight: "400px",
-    overflowY: "auto",
-  },
-  courseCard: {
-    backgroundColor: "#F9F9F9",
-    padding: "15px",
-    marginBottom: "10px",
-    borderRadius: "4px",
-    boxShadow: "0 2px rgba(0,0,0,.1)",
-    cursor: "pointer",
-  },
-};
+import './css/TutorDashboard.css';  // Import the CSS file
 
 function TutorDashboard() {
   const [courses, setCourses] = useState([]);
@@ -215,62 +59,62 @@ function TutorDashboard() {
   };
 
   return (
-    <div style={styles.container}>
-      <header style={styles.header}>
-        <div style={styles.headerLeft}>
-          <img src="/logo.png" alt="Logo" style={styles.logo} />
-          <span style={styles.platformName}>
+    <div className="container">
+      <header className="header">
+        <div className="headerLeft">
+          <img src="/logo.png" alt="Logo" className="logo" />
+          <span className="platformName">
             <span className="quick">Quick </span>
             <span className="quick">Learn</span>
           </span>
         </div>
-        <div style={styles.headerCenter}>
-          <input type="text" placeholder="Search..." style={styles.searchBar} />
+        <div className="headerCenter">
+          <input type="text" placeholder="Search..." className="searchBar" />
         </div>
-        <div style={styles.headerRight}>
-          <button style={styles.button} onClick={handleLogout}>Logout</button>
+        <div className="headerRight">
+          <button className="button" onClick={handleLogout}>Logout</button>
         </div>
       </header>
 
-      <div style={styles.mainContent}>
-        <div style={styles.smallSidebar}>
-          <button style={styles.toggleButton} onClick={toggleSidebar}>
+      <div className="mainContent">
+        <div className="smallSidebar">
+          <button className="toggleButton" onClick={toggleSidebar}>
             ☰
           </button>
         </div>
 
         {sidebarExpanded && (
-          <div style={styles.expandedSidebar}>
+          <div className="expandedSidebar">
             {userDetails && (
-              <div style={styles.userDetails}>
-                <div style={styles.avatar}>
+              <div className="userDetails">
+                <div className="avatar">
                   {userDetails.tutorName ? userDetails.tutorName.charAt(0) : "?"}
                 </div>
-                <div style={styles.tutorName}>{userDetails.tutorName}</div>
+                <div className="tutorName">{userDetails.tutorName}</div>
               </div>
             )}
-            <button style={styles.sidebarButton} onClick={() => navigate("/my-courses")}>
+            <button className="sidebarButton" onClick={() => navigate("/my-courses")}>
               My Courses
             </button>
-            <button style={styles.sidebarButton} onClick={() => navigate("/create-course")}>
+            <button className="sidebarButton" onClick={() => navigate("/create-course")}>
               Create Course
             </button>
           </div>
         )}
 
-        <div style={{ ...styles.rightColumn, width: sidebarExpanded ? "70%" : "100%" }}>
+        <div className={`rightColumn ${sidebarExpanded ? 'expanded' : ''}`}>
           {userDetails && (
-            <div style={styles.welcomeCard}>
+            <div className="welcomeCard">
               <h2>👋 Hello, {userDetails.tutorName}!</h2>
             </div>
           )}
 
-          <div style={styles.courseList}>
+          <div className="courseList">
             {courses.length > 0 ? (
               courses.map((course) => (
-                <div key={course.id} style={styles.courseCard} onClick={() => navigate(`/course/${course.id}`)}>
-                  <h4>{course.name}</h4>
-                  <p>Taught by: {course.tutorName}</p>
+                <div key={course.id} className="courseCard" onClick={() => navigate(`/course/${course.id}`)}>
+                  <h3>{course.name}</h3>
+                  <p>{course.description}</p>
                 </div>
               ))
             ) : (
@@ -279,19 +123,6 @@ function TutorDashboard() {
           </div>
         </div>
       </div>
-
-      <style>{`
-        .quick {
-          display: inline-block;
-          animation: dance 1s infinite alternate;
-        }
-
-        @keyframes dance {
-          0% { transform: translateX(6px); }
-          50% { transform: translateX(4px); }
-          100% { transform: translateX(-4px); }
-        }
-      `}</style>
     </div>
   );
 }
