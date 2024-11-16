@@ -6,13 +6,18 @@ function TutorDashboard() {
   const [courses, setCourses] = useState([]);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [userDetails, setUserDetails] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);  // For handling modal state
+  const [courseName, setCourseName] = useState("");  // For storing course name
+  const [courseDescription, setCourseDescription] = useState("");  // For storing course description
+  const [loading, setLoading] = useState(false);  // For showing loading state
+  const [error, setError] = useState("");  // For showing error message if any
 
   const navigate = useNavigate();
-  const userId = sessionStorage.getItem("userId"); // Get userId from sessionStorage
+  const userId = sessionStorage.getItem("userId");
 
   useEffect(() => {
     if (!userId) {
-      navigate("/login"); // Redirect to login if no userId in sessionStorage
+      navigate("/login");
       return;
     }
 
@@ -58,16 +63,51 @@ function TutorDashboard() {
     navigate("/"); // Redirect to landing page
   };
 
+  // Function to handle course creation
+  const handleCreateCourse = async () => {
+    setLoading(true);
+    setError("");  // Reset error
+
+    const courseData = {
+      name: courseName,
+      description: courseDescription,
+    };
+
+    try {
+      const response = await fetch("http://localhost:7773/api/courses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(courseData),
+      });
+
+      if (response.ok) {
+        setIsModalOpen(false);  // Close the modal on success
+        alert("Course created successfully!");
+        fetchCourses();  // Refresh the course list
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || "Failed to create course.");
+      }
+    } catch (error) {
+      console.error("Error creating course:", error);
+      setError("An error occurred while creating the course.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="container">
       <header className="header">
-        <div className="headerLeft">
-          <img src="/logo.png" alt="Logo" className="logo" />
-          <span className="platformName">
-            <span className="quick">Quick </span>
-            <span className="quick">Learn</span>
-          </span>
-        </div>
+      <div className="headerLeft">
+        <img src="/logo.png" alt="Logo" className="logo" />
+        <span className="platformName">
+          <span className="quick">Quick</span> 
+          <span className="quick">Learn</span> 
+        </span>
+      </div>
         <div className="headerCenter">
           <input type="text" placeholder="Search..." className="searchBar" />
         </div>
@@ -84,25 +124,27 @@ function TutorDashboard() {
         </div>
 
         {sidebarExpanded && (
-          <div className="expandedSidebar">
+          <div className="mainContent">
+          <div className="sidebar">
             {userDetails && (
-              <div className="userDetails">
+              <div className="userSection">
                 <div className="avatar">
                   {userDetails.tutorName ? userDetails.tutorName.charAt(0) : "?"}
                 </div>
-                <div className="tutorName">{userDetails.tutorName}</div>
+                <div className="tutorName"><bold>{userDetails.tutorName}</bold></div>
               </div>
             )}
             <button className="sidebarButton" onClick={() => navigate("/my-courses")}>
               My Courses
             </button>
-            <button className="sidebarButton" onClick={() => navigate("/create-course")}>
+            <button className="sidebarButton" onClick={() => setIsModalOpen(true)}>
               Create Course
             </button>
           </div>
+          </div>
         )}
 
-        <div className={`rightColumn ${sidebarExpanded ? 'expanded' : ''}`}>
+        <div className={`rightColumn ${sidebarExpanded ? "expanded" : ""}`}>
           {userDetails && (
             <div className="welcomeCard">
               <h2>👋 Hello, {userDetails.tutorName}!</h2>
@@ -113,7 +155,7 @@ function TutorDashboard() {
             {courses.length > 0 ? (
               courses.map((course) => (
                 <div key={course.id} className="courseCard" onClick={() => navigate(`/course/${course.id}`)}>
-                  <h3>{course.name}</h3>
+                  <h3>{course.courseName}</h3>
                   <p>{course.description}</p>
                 </div>
               ))
@@ -123,6 +165,36 @@ function TutorDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Modal for course creation */}
+      {isModalOpen && (
+        <div className="modalOverlay">
+          <div className="modalContent">
+            <h3>Create a New Course</h3>
+            <input
+              type="text"
+              placeholder="Course Name"
+              value={courseName}
+              onChange={(e) => setCourseName(e.target.value)}
+              className="modalInput"
+            />
+            <textarea
+              placeholder="Course Description"
+              value={courseDescription}
+              onChange={(e) => setCourseDescription(e.target.value)}
+              className="modalInput"
+            />
+            {error && <p className="error">{error}</p>}
+            <div className="modalButtons">
+              <button onClick={handleCreateCourse} disabled={loading}>
+                {loading ? "Creating..." : "Create"}
+              </button>
+              <button onClick={() => setIsModalOpen(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+      
     </div>
   );
 }
