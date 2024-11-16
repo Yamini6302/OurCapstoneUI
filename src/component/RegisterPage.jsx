@@ -1,172 +1,155 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; 
-import Lottie from "lottie-react"; 
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Lottie from "react-lottie";
+import "./css/StudentDetails.css"; // Reusing CSS for consistency
+import animationData from "./animations/login.json"; // Lottie animation
 
 function RegisterPage() {
-  const [username, setUsername] = useState(""); // Email field
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
-  const [animationData, setAnimationData] = useState(null); // State for Lottie animation data
-  const navigate = useNavigate(); 
+  const [errorMessage, setErrorMessage] = useState("");
+  const [usernameError, setUsernameError] = useState(""); // Track username-specific errors
+  const [successMessage, setSuccessMessage] = useState(""); // State for success message
+  const navigate = useNavigate();
 
-  // Load the animation data using fetch on component mount
-  useEffect(() => {
-    const fetchAnimation = async () => {
-      const response = await fetch('https://lottie.host/40d8f510-6d07-4562-b01d-696d2860ffcf/eG0n4SiEt6.json');
-      const data = await response.json();
-      setAnimationData(data);
-    };
-
-    fetchAnimation();
-  }, []);
-
+  // Handle register logic
   const handleRegister = async (e) => {
     e.preventDefault();
-  
-    const requestBody = {
-      username,
-      password,
-      role,
-    };
-  
+
+    const requestBody = { username, password, role };
+
     try {
       const response = await fetch("http://localhost:7779/api/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
       });
-  
+
       if (response.ok) {
-        const responseData = await response.json();        
-        // Assuming the response contains the userId after successful registration
-        const userId = responseData.userId; // Make sure the backend returns this field
-        
-        // Save userId in sessionStorage
-        sessionStorage.setItem("userId", userId);
-  
-        alert("Registered successfully!");
-  
-        // Redirect based on role
-        if (role === "Student") {
-          navigate("/student-details");
-        } else if (role === "Tutor") {
-          navigate("/tutor-details");
-        }
+        const data = await response.json();
+        setSuccessMessage("Registration successful. Please log in."); // Set success message
+
+        // Clear any previous error messages
+        setErrorMessage("");
+
+        // Redirect to login page after 2 seconds
+        setTimeout(() => navigate("/login"), 2000); // After 2 seconds, navigate to login page
       } else {
-        const errorData = await response.json();
-        alert(errorData.message || "Registration failed. Please try again.");
+        const errorText = await response.text();
+        console.error("Error response:", errorText);
+
+        let errorData = {};
+
+        try {
+          errorData = JSON.parse(errorText);  // Attempt to parse error message as JSON
+        } catch (error) {
+          errorData.message = errorText;  // Fallback to raw error text
+        }
+
+        const errorMessage = errorData.message || "Error during registration.";
+
+        if (errorMessage.includes("Username already exists")) {
+          setUsernameError("This email is already registered. Please choose another one.");
+          setErrorMessage(""); // Clear general error message
+        } else {
+          setErrorMessage(errorMessage);
+          setUsernameError(""); // Reset username error if it's another issue
+        }
       }
     } catch (error) {
       console.error("Error during registration:", error);
-      alert("An error occurred. Please try again later.");
+      setErrorMessage("An error occurred. Please try again later.");
+      setUsernameError("");  // Reset username error if there's a network error
     }
   };
 
-  // Inline styles for the full-page background
-  const pageStyle = {
-    height: "100vh", 
-    width: "100vw",   
-    position: "relative",
-    overflow: "hidden",
-    display: 'flex',
-    justifyContent: 'center', 
-    alignItems: 'center', 
+  // Lottie animation options for registration
+  const lottieOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: animationData,
   };
 
-  // Form container styles
-  const formStyle = {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",  
-    padding: "30px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-    width: "100%",  
-    maxWidth: "400px",  
-    textAlign: "left", 
-    position: "relative", 
-   zIndex :1,
-   margin:"auto"
-    
-};
+  return (
+    <div className="register-container">
+      {/* Logo and App Name */}
+      <div className="logo-container">
+        <img src="/logo.png" alt="App Logo" className="app-logo" />
+      </div>
 
-return (
-  <div style={pageStyle}>
-  {/* Lottie Animation Background */}
-  <div className="logo-container">
-          <img
-            src="/logo.png" // Replace with your logo path
-            alt="App Logo"
-            className="app-logo"
-          />
-          
-        </div>
-    {animationData && (
-          <Lottie
-          animationData={animationData}
-          loop={true}
-          autoplay={true}
-          style={{
-          position:'absolute',
-          top :0,
-          left :0,
-          width:'100%',
-          height:'100%',
-          zIndex:-1,
-          }}
-          />
-          )}
-
-    <div style={formStyle}>
-      <h3 className="form-heading">Register with Quick Learn</h3>
-
+      <div className="form-container">
+        <h4 className="form-heading">Register for Quick Learn</h4>
         <form onSubmit={handleRegister}>
-<div className="form-group">
-<label htmlFor="username">Email</label>
-<input
-type="email" // Change to email type for validation
-id="username"
-className="form-control"
-value={username}
-onChange={(e) => setUsername(e.target.value)}
-required
-/>
-</div>
+          <div className="input-container">
+            <input
+              type="email"
+              id="username"
+              name="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              placeholder=" "
+            />
+            <label htmlFor="username">Email</label>
+            {/* Display username-specific error message if it exists */}
+            {usernameError && <div className="input-error">{usernameError}</div>}
+          </div>
 
-<div className="form-group">
-<label htmlFor="password">Password</label>
-<input
-type="password"
-id="password"
-className="form-control"
-value={password}
-onChange={(e) => setPassword(e.target.value)}
-required
-/>
-</div>
+          <div className="input-container">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder=" "
+            />
+            <label htmlFor="password">Password</label>
+          </div>
 
-<div className="form-group">
-<label htmlFor="role">Role</label>
-<select
-id="role"
-className="form-control"
-value={role}
-onChange={(e) => setRole(e.target.value)}
-required
->
-<option value="">Select a role</option>
-<option value="Student">Student</option>
-<option value="Tutor">Tutor</option>
-</select>
-</div>
+          <div className="input-container">
+            <select
+              id="role"
+              name="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              required
+            >
+              <option value="">Select a role</option>
+              <option value="Student">Student</option>
+              <option value="Tutor">Tutor</option>
+            </select>
+            <label htmlFor="role">Role</label>
+          </div>
 
-<button type="submit" className="btn btn-success mt-3">
-Register
-</button>
+          <button type="submit" className="next-btn">
+            Register
+          </button>
         </form>
+
+        {/* Display success message inside the form */}
+        {successMessage && <div className="success-message">{successMessage}</div>}
+
+        {/* Error message display */}
+        {errorMessage && <div className="error-message">{errorMessage}</div>}
+
+        <div className="mt-3">
+          <p>
+            Already have an account?{" "}
+            <a href="/login" className="btn btn-link">
+              Login here
+            </a>
+          </p>
+        </div>
+      </div>
+
+      <div className="image-container">
+        <Lottie options={lottieOptions} height={400} width={400} />
+      </div>
     </div>
-  </div>
-);
+  );
 }
 
 export default RegisterPage;
