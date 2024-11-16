@@ -23,13 +23,21 @@ function TutorDashboard() {
 
     const fetchCourses = async () => {
       try {
-        const response = await fetch("http://localhost:7773/api/courses");
-        if (response.ok) {
-          const data = await response.json();
-          setCourses(data);
-        } else {
-          console.error("Failed to fetch courses");
+        console.log("Fetching courses from:", "http://localhost:7773/api/courses");
+        const response = await fetch("http://localhost:7773/api/courses", {
+          method: "GET",
+          headers: {
+            "Accept": "application/json"
+          },
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch courses: ${response.statusText}`);
         }
+
+        const data = await response.json();
+        setCourses(data);
       } catch (error) {
         console.error("Error fetching courses:", error);
       }
@@ -66,33 +74,61 @@ function TutorDashboard() {
   // Function to handle course creation
   const handleCreateCourse = async () => {
     setLoading(true);
-    setError("");  // Reset error
-
-    const courseData = {
-      name: courseName,
-      description: courseDescription,
-    };
+    setError("");
 
     try {
-      const response = await fetch("http://localhost:7773/api/courses", {
+      // Step 1: Create the course
+      const courseResponse = await fetch("http://localhost:7773/api/courses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json",
         },
-        body: JSON.stringify(courseData),
+        body: JSON.stringify({
+          courseName: courseName,
+          description: courseDescription,
+        }),
       });
 
-      if (response.ok) {
-        setIsModalOpen(false);  // Close the modal on success
-        alert("Course created successfully!");
-        fetchCourses();  // Refresh the course list
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || "Failed to create course.");
+      if (!courseResponse.ok) {
+        throw new Error(`Failed to create course: ${courseResponse.statusText}`);
       }
+
+      const createdCourse = await courseResponse.json();
+      console.log('Created course:', createdCourse);
+
+      // Step 2: Create course-tutor association
+      const courseTutorData = {
+        courseId: createdCourse.courseId, // Make sure this matches the property name from the response
+        tutorIds: [userId]
+      };
+
+      console.log('Creating course-tutor association:', courseTutorData); // Debug log
+
+      const courseTutorResponse = await fetch("http://localhost:7772/api/course-tutors", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify(courseTutorData),
+      });
+
+      if (!courseTutorResponse.ok) {
+        const errorText = await courseTutorResponse.text();
+        console.error('Course-tutor error response:', errorText); // Debug log
+        throw new Error(`Failed to create course-tutor association: ${errorText}`);
+      }
+
+      setIsModalOpen(false);
+      setCourseName("");
+      setCourseDescription("");
+      alert("Course created successfully!");
+      await fetchCourses();
+
     } catch (error) {
       console.error("Error creating course:", error);
-      setError("An error occurred while creating the course.");
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -151,18 +187,18 @@ function TutorDashboard() {
             </div>
           )}
 
-          <div className="courseList">
-            {courses.length > 0 ? (
-              courses.map((course) => (
-                <div key={course.id} className="courseCard" onClick={() => navigate(`/course/${course.id}`)}>
-                  <h3>{course.courseName}</h3>
-                  <p>{course.description}</p>
-                </div>
-              ))
-            ) : (
-              <p>No courses available.</p>
-            )}
-          </div>
+        <div className="courseList">
+          {courses.length > 0 ? (
+            courses.map((course) => (
+              <div key={course.id} className="courseCard" onClick={() => navigate(`/course/${course.id}`)}>
+                <h3>{course.courseName}</h3>  {/* Make sure this matches the backend property name */}
+                <p>{course.description}</p>
+              </div>
+            ))
+          ) : (
+            <p>No courses available.</p>
+          )}
+        </div>
         </div>
       </div>
 
