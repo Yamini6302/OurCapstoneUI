@@ -290,7 +290,7 @@
   align-items: center;
   z-index: 1000;
   animation: fadeIn 0.3s ease-out;
-  display: none; /* Initially hidden */
+ /* Initially hidden */
 }
 
 .modalContent {
@@ -301,6 +301,10 @@
   max-width: 90%;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   animation: slideUp 0.3s ease-out;
+  position: relative;
+  background: linear-gradient(rgb(247, 226, 226), white) padding-box,
+              linear-gradient(135deg, #d85509, #1f0335) border-box;
+  border: 2px solid transparent;
 }
 
 .modalContent h3 {
@@ -343,16 +347,27 @@
   transition: all 0.3s ease;
   font-weight: 600;
   text-transform: uppercase;
+  background: linear-gradient(135deg, #180161, #290944);
+  color: white;
+  flex: 1;
+}
+
+.modalButtons button:last-child {
+  background: #f8f9fa;
+  color: #333;
+  border: 1px solid #ddd;
 }
 
 .modalButtons button:hover {
-  background-color: #28a745;
-  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .modalButtons button:disabled {
-  background-color: #ccc;
+  background: #ccc;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Success Message */
