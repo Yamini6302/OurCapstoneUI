@@ -14,6 +14,7 @@ function TutorDashboard() {
   const [myCourses, setMyCourses] = useState([]);
   const [isMyCoursesModalOpen, setIsMyCoursesModalOpen] = useState(false);
   const [courseCreators, setCourseCreators] = useState({});
+  const [joinedCourses, setJoinedCourses] = useState(new Set());
 
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId");
@@ -26,19 +27,18 @@ function TutorDashboard() {
 
     const fetchCourses = async () => {
       try {
-        console.log("Fetching courses from:", "http://localhost:7773/api/courses");
         const response = await fetch("http://localhost:7773/api/courses", {
           method: "GET",
           headers: {
-            "Accept": "application/json"
+            "Accept": "application/json",
+            "Content-Type": "application/json"
           },
           credentials: 'include'
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch courses: ${response.statusText}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-
         const data = await response.json();
         setCourses(data);
       } catch (error) {
@@ -65,32 +65,51 @@ function TutorDashboard() {
     fetchUserDetails();
   }, [userId, navigate]);
 
-  useEffect(() => {
-    const fetchCourseCreators = async () => {
-      const creators = {};
-      for (const course of courses) {
+  const fetchCourseCreators = async () => {
+    const creators = {};
+    const joined = new Set();
+    
+    for (const course of courses) {
         try {
-          const response = await fetch(`http://localhost:7772/api/course-tutors/${course.id}`);
-          if (response.ok) {
-            const data = await response.json();
-            const creatorId = data.tutorIds[0]; // Get first tutor (creator)
-            const tutorResponse = await fetch(`http://localhost:7777/api/tutor/${creatorId}`);
-            if (tutorResponse.ok) {
-              const tutorData = await tutorResponse.json();
-              creators[course.id] = tutorData.tutorName;
+            const response = await fetch(`http://localhost:7772/api/course-tutors/${course.id}`, {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                },
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const creatorId = data.tutorIds[0]; // Fetching first tutor ID
+                if (data.tutorIds.includes(userId)) {
+                    joined.add(course.id);
+                }
+                
+                // Fetch tutor details
+                const tutorResponse = await fetch(`http://localhost:7777/api/tutor/${creatorId}`, {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    credentials: 'include'
+                });
+                
+                if (tutorResponse.ok) {
+                    const tutorData = await tutorResponse.json();
+                    creators[course.id] = tutorData.tutorName; // Store tutor name
+                }
             }
-          }
         } catch (error) {
-          console.error("Error fetching course creator:", error);
+            console.error("Error fetching course creator:", error);
         }
-      }
-      setCourseCreators(creators);
-    };
-
-    if (courses.length > 0) {
-      fetchCourseCreators();
     }
-  }, [courses]);
+    
+    setCourseCreators(creators);
+    setJoinedCourses(joined);
+};
 
   const handleLogout = () => {
     sessionStorage.removeItem("userId");
@@ -103,13 +122,13 @@ function TutorDashboard() {
     setError("");
 
     try {
-      // Step 1: Create the course
       const courseResponse = await fetch("http://localhost:7773/api/courses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json",
+          "Accept": "application/json"
         },
+        credentials: 'include',
         body: JSON.stringify({
           courseName: courseName,
           description: courseDescription,
@@ -160,41 +179,75 @@ function TutorDashboard() {
     }
   };
 
+  const fetchMyCourses = async () => {
+    try {
+        const response = await fetch(`http://localhost:7772/api/course-tutors`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'include'
+        });
+        if (response.ok) {
+            const data = await response.json();
+            const myCourseIds = data
+                .filter(ct => ct.tutorIds.includes(userId))
+                .map(ct => ct.courseId);
+            const coursesPromises = myCourseIds.map(courseId =>
+                fetch(`http://localhost:7773/api/courses/${courseId}`, {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    credentials: 'include'
+                }).then(res => res.json())
+            );
+            const myCoursesList = await Promise.all(coursesPromises);
+            setMyCourses(myCoursesList); // Store fetched courses
+        }
+    } catch (error) {
+        console.error("Error fetching my courses:", error);
+    }
+};
+
   const handleJoinCourse = async (courseId) => {
     try {
-      const response = await fetch("http://localhost:7772/api/course-tutors", {
-        method: "POST",
+      const response = await fetch(`http://localhost:7772/api/course-tutors/${courseId}`, {
+        method: "GET",
         headers: {
-          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          courseId: courseId,
-          tutorIds: [userId]
-        })
+        credentials: 'include'
       });
 
       if (response.ok) {
-        alert("Successfully joined the course!");
-        // Refresh courses
-        fetchCourses();
+        const data = await response.json();
+        const updatedTutorIds = [...data.tutorIds, userId];
+
+        const updateResponse = await fetch(`http://localhost:7772/api/course-tutors/${courseId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            "Accept": "application/json"
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            courseId: courseId,
+            tutorIds: updatedTutorIds
+          })
+        });
+
+        if (updateResponse.ok) {
+          setJoinedCourses(prev => new Set([...prev, courseId]));
+          alert("Successfully joined the course!");
+        }
       }
     } catch (error) {
       console.error("Error joining course:", error);
       alert("Failed to join course");
-    }
-  };
-
-  const hasJoinedCourse = async (courseId) => {
-    try {
-      const response = await fetch(`http://localhost:7772/api/course-tutors/${courseId}`);
-      if (response.ok) {
-        const data = await response.json();
-        return data.tutorIds.includes(userId);
-      }
-      return false;
-    } catch (error) {
-      console.error("Error checking course membership:", error);
-      return false;
     }
   };
 
@@ -228,7 +281,13 @@ function TutorDashboard() {
               </div>
             </div>
           )}
-          <button className="sidebarButton" onClick={() => navigate("/my-courses")}>
+          <button 
+            className="sidebarButton" 
+            onClick={() => {
+              fetchMyCourses();
+              setIsMyCoursesModalOpen(true);
+            }}
+          >
             My Courses
           </button>
           <button className="sidebarButton" onClick={() => setIsModalOpen(true)}>
@@ -245,9 +304,27 @@ function TutorDashboard() {
           <div className="courseList">
             {courses.length > 0 ? (
               courses.map((course) => (
-                <div key={course.id} className="courseCard" onClick={() => navigate(`/course/${course.id}`)}>
+                <div key={course.id} className="courseCard">
                   <h3>{course.courseName}</h3>
                   <p>{course.description}</p>
+                  <p className="courseCreator">
+                    Created by: {courseCreators[course.id] || 'Loading...'}
+                  </p>
+                  {joinedCourses.has(course.id) ? (
+                    <button 
+                      className="viewButton"
+                      onClick={() => navigate(`/course/${course.id}`)}
+                    >
+                      View Course
+                    </button>
+                  ) : (
+                    <button 
+                      className="joinButton"
+                      onClick={() => handleJoinCourse(course.id)}
+                    >
+                      Join Course
+                    </button>
+                  )}
                 </div>
               ))
             ) : (
@@ -256,6 +333,32 @@ function TutorDashboard() {
           </div>
         </div>
       </div>
+
+      {/* My Courses Modal */}
+      {isMyCoursesModalOpen && (
+    <div className="modalOverlay">
+        <div className="modalContent">
+            <h3>My Courses</h3>
+            <div className="myCoursesList">
+                {myCourses.map((course) => (
+                    <div key={course.id} className="myCourseCard">
+                        <h4>{course.courseName}</h4>
+                        <p>{course.description}</p>
+                        <button className="viewButton" onClick={() => { 
+                            setIsMyCoursesModalOpen(false); 
+                            navigate(`/course/${course.id}`); 
+                        }}>
+                            View Course
+                        </button>
+                    </div>
+                ))}
+            </div>
+            <div className="modalButtons">
+                <button onClick={() => setIsMyCoursesModalOpen(false)}>Close</button>
+            </div>
+        </div>
+    </div>
+)}
 
       {/* Modal for course creation */}
       {isModalOpen && (
