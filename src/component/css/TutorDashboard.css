@@ -21,7 +21,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #180161, #faa331);
+  background: linear-gradient(135deg, #130346, #faa331);
   padding: 15px 25px;
   color: rgb(255, 255, 255);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
@@ -95,7 +95,7 @@
   padding: 10px 18px;
   border-radius: 25px;
   border: none;
-  background: linear-gradient(135deg, #240a4b, #6c2899);
+  background: linear-gradient(135deg, #2f0d61, #06085e);
   color: #fff;
   cursor: pointer;
   transition: all 0.3s ease;
