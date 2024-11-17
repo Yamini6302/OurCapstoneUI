@@ -1,0 +1,120 @@
+/* Container */
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Main content area */
+.mainContent {
+  display: flex;
+  width: 100%;
+  margin-top: 120px;
+  height: calc(100vh - 120px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background: linear-gradient(135deg, #f6b5e0, #ffea8d);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+  height: calc(100vh - 120px);
+  position: fixed;
+  left: 0;
+  top: 120px;
+  z-index: 100;
+}
+
+/* User section in sidebar */
+.userSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(89, 28, 202, 0.1);
+  margin-bottom: 20px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6f61, #ff9966);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 32px;
+  color: white;
+  font-weight: bold;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.studentName {
+  font-size: 1.3rem;
+  color: #160950;
+  text-align: center;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+/* Right Column */
+.rightColumn {
+  flex: 1;
+  padding: 20px 40px;
+  margin-left: 220px;
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 120px);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* Welcome Card */
+.welcomeCard {
+  background: linear-gradient(45deg, #e1f7ff, #fb773c);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  color: #1a1a1d;
+  text-align: center;
+  margin-bottom: 30px;
+  transition: all 0.3s ease;
+}
+
+.welcomeCard h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  color: #19153a;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Course List */
+.courseList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Course Card */
+.courseCard {
+  background-color: rgba(252, 248, 236, 0.959);
+  padding: 25px;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}

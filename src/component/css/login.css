@@ -1,0 +1,73 @@
+/* This ensures the page layout is properly split into two vertical sections */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Container for the entire page layout */
+  .login-page {
+    display: flex; /* Flexbox to create two columns */
+    height: 100vh; /* Full screen height */
+    width: 100%; /* Full width */
+  }
+  
+  /* Left side: Login form container */
+  .login-form-container {
+    flex: 1; /* Takes up 50% of the width */
+    display: flex;
+    justify-content: center; /* Center form horizontally */
+    align-items: center; /* Center form vertically */
+    flex-direction: column;
+    padding: 30px;
+    background-color: rgba(255, 255, 255, 0.9); /* Light background */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional shadow */
+    border-radius: 8px;
+    max-width: 450px; /* Optional, limit the max width of the form */
+    z-index: 1;
+  }
+  
+  /* Logo on top right */
+  .logo-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+  
+  .login-logo {
+    width: 50px; /* Adjust logo size as needed */
+    height: auto;
+  }
+  
+  /* Right side: Lottie animation container */
+  .lottie-container {
+    flex: 1; /* Takes up 50% of the screen width */
+    display: flex;
+    justify-content: center; /* Center the animation horizontally */
+    align-items: center; /* Center the animation vertically */
+    background-color: #f0f0f0; /* Optional background color */
+    position: relative; /* Ensures animation stays in the correct place */
+    height: 100%;
+  }
+  
+  /* Basic styling for form fields */
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+  }
+  
+  button {
+    width: 100%;
+    padding: 10px;
+  }
+  
+  /* Additional styles for links */
+  a {
+    text-decoration: none;
+  }
+  

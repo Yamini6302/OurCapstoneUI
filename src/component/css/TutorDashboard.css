@@ -1,13 +1,21 @@
-/* Container */
 .container {
   display: flex;
   height: 100vh;
-  width: 100vw;
+  width: 100%;
   flex-direction: column;
-  margin: 0;
-  overflow-x: hidden;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
+/* Main content area */
+.mainContent {
+  display: flex;
+  width: 100%;
+  margin-top: 120px;
+  height: calc(100vh - 120px);
+  position: relative;
+  overflow: hidden;
+}
 /* Header - Made Fixed */
 .header {
   display: flex;
@@ -99,33 +107,23 @@
   transform: translateY(-3px);
 }
 
-/* Main content area below fixed header */
-.mainContent {
-  display: flex;
-  flex-grow: 12;
-  width: 100%;
-  margin-top: 130px; /* Increased to add more space below fixed header */
-  height: calc(100vh - 130px); /* Adjusted to account for increased header space */
-  position: relative;
-  overflow: hidden; /* Prevents the left column from scrolling */
-}
-
 /* Sidebar (always visible) */
+/* Sidebar */
 .sidebar {
-  width: 200px;
-  background: linear-gradient(135deg, #f6b5e0, #ffea8d); /* Keep this gradient */
+  width: 220px;
+  background: linear-gradient(135deg, #f6b5e0, #ffea8d);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 20px;
   box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
-  height: calc(100vh - 90px);  /* Make sure it fills the screen height */
+  height: calc(100vh - 120px);
   position: fixed;
   left: 0;
-  top: 90px; 
-  z-index: 100;/* Start below fixed header */
- 
+  top: 120px;
+  z-index: 100;
 }
+
 
 /* User section in sidebar */
 .userSection {
@@ -136,14 +134,13 @@
   padding: 20px 0;
   border-bottom: 1px solid rgba(89, 28, 202, 0.1);
   margin-bottom: 20px;
-  margin-right: 0px;
 }
 
 .avatar {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #fb773c, #f56d27);
+  background: linear-gradient(135deg, #ff6f61, #ff9966);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -186,16 +183,13 @@
 
 /* Right Column - Adjusted for fixed sidebar */
 .rightColumn {
-  flex-grow: 1;
-  padding: 30px;
-  margin-left: -730px; /* Match sidebar width */
-  overflow-y: auto;
+  flex: 1;
+  padding: 20px 40px;
+  margin-left: 220px;
   background-color: #f8f9fa;
-  min-height: calc(100vh - 130px); /* Adjust to prevent gap at the bottom */
-  margin-right: 0;
   height: 100%;
-  position: relative; /* Added position */
-  z-index: 50; /* Prevent horizontal overflow */
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 /* Welcome Card */
@@ -228,6 +222,8 @@
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
   padding: 20px 0;
+  width: 100%; /* Ensure it takes full width */
+  box-sizing: border-box;
 }
 
 /* Course Card */
@@ -419,4 +415,46 @@
   }
 
      
+}
+
+/* My Courses Modal */
+.myCoursesList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.myCourseCard {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.myCourseCard h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.myCourseCard p {
+  margin: 0 0 15px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.viewButton {
+  background: linear-gradient(135deg, #180161, #290944);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.viewButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
