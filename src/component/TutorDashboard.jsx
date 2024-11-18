@@ -3,67 +3,17 @@ import { useNavigate } from "react-router-dom";
 import './css/TutorDashboard.css';  // Import the CSS file
 
 // Add this component before the TutorDashboard function
-const CourseCard = ({ course, tutorId, onJoin, onView, courseCreator }) => {
-    const [isMapped, setIsMapped] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const checkMapping = async () => {
-            try {
-                const response = await fetch(`http://localhost:7772/api/course-tutors/${course.id}`, {
-                    method: "GET",
-                    headers: {
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    credentials: 'include'
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setIsMapped(data.tutorIds.includes(tutorId));
-                }
-            } catch (error) {
-                console.error(`Error checking course mapping for ${course.id}:`, error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        
-        if (tutorId) {
-            checkMapping();
-        }
-    }, [course.id, tutorId]);
-
-    if (isLoading) {
-        return <div className="courseCard"><p>Loading...</p></div>;
-    }
-
+const CourseCard = ({ course, onView }) => {
     return (
         <div className="courseCard">
             <h3>{course.courseName}</h3>
             <p>{course.description}</p>
-            <p className="courseCreator">
-                Created by: {courseCreator || 'Loading...'}
-            </p>
-            {isMapped ? (
-                <>
-                    <p className="joinedStatus">You have already joined this course</p>
-                    <button 
-                        className="viewButton"
-                        onClick={() => onView(course.id)}
-                    >
-                        View Course
-                    </button>
-                </>
-            ) : (
-                <button 
-                    className="joinButton"
-                    onClick={() => onJoin(course.id)}
-                >
-                    Join Course
-                </button>
-            )}
+            <button 
+                className="viewButton"
+                onClick={() => onView(course.id)}
+            >
+                View Course
+            </button>
         </div>
     );
 };
@@ -82,6 +32,9 @@ function TutorDashboard() {
   const [courseCreators, setCourseCreators] = useState({});
   const [joinedCourses, setJoinedCourses] = useState(new Set());
   const [tutorId, setTutorId] = useState(null);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [selectedCourseId, setSelectedCourseId] = useState('');
+  const [startDate, setStartDate] = useState('');
 
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId");
@@ -510,6 +463,42 @@ function TutorDashboard() {
     }
   }, [tutorId]);
 
+  // Add this function to handle course scheduling
+  const handleScheduleCourse = async () => {
+    if (!selectedCourseId || !startDate) {
+        setError("Please select a course and start date");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost:7772/api/course-schedule", {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                courseId: selectedCourseId,
+                startDate: startDate,
+                tutorId: tutorId
+            })
+        });
+
+        if (response.ok) {
+            alert("Course scheduled successfully!");
+            setIsScheduleModalOpen(false);
+            setSelectedCourseId('');
+            setStartDate('');
+        } else {
+            throw new Error("Failed to schedule course");
+        }
+    } catch (error) {
+        console.error("Error scheduling course:", error);
+        setError("Failed to schedule course. Please try again.");
+    }
+  };
+
   return (
     <div className="container">
       <header className="header">
@@ -546,6 +535,9 @@ function TutorDashboard() {
           <button className="sidebarButton" onClick={() => setIsModalOpen(true)}>
             Create Course
           </button>
+          <button className="sidebarButton" onClick={() => setIsScheduleModalOpen(true)}>
+            Schedule Course
+          </button>
         </div>
 
         <div className="rightColumn">
@@ -562,19 +554,11 @@ function TutorDashboard() {
                 <p className="error">{error}</p>
             ) : myCourses.length > 0 ? (
                 myCourses.map((course) => (
-                    <div key={course.id} className="courseCard">
-                        <h3>{course.courseName}</h3>
-                        <p>{course.description}</p>
-                        <p className="courseCreator">
-                            Created by: {courseCreators[course.id] || 'Loading...'}
-                        </p>
-                        <button 
-                            className="viewButton"
-                            onClick={() => navigate(`/course/${course.id}`)}
-                        >
-                            View Course
-                        </button>
-                    </div>
+                    <CourseCard 
+                        key={course.id} 
+                        course={course} 
+                        onView={(courseId) => navigate(`/course/${courseId}`)}
+                    />
                 ))
             ) : (
                 <p className="noCourses">You haven't joined any courses yet.</p>
@@ -649,6 +633,49 @@ function TutorDashboard() {
         </div>
       )}
       
+      {/* Schedule Course Modal */}
+      {isScheduleModalOpen && (
+          <div className="modalOverlay">
+              <div className="modalContent">
+                  <h3>Schedule Course</h3>
+                  <div className="modalInputGroup">
+                      <select 
+                          className="modalInput"
+                          value={selectedCourseId}
+                          onChange={(e) => setSelectedCourseId(e.target.value)}
+                      >
+                          <option value="">Select a Course</option>
+                          {myCourses.map(course => (
+                              <option key={course.id} value={course.id}>
+                                  {course.courseName}
+                              </option>
+                          ))}
+                      </select>
+                      <input 
+                          type="date"
+                          className="modalInput"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          min={new Date().toISOString().split('T')[0]} // Prevents selecting past dates
+                      />
+                  </div>
+                  {error && <p className="error">{error}</p>}
+                  <div className="modalButtons">
+                      <button onClick={handleScheduleCourse}>
+                          Start Course
+                      </button>
+                      <button onClick={() => {
+                          setIsScheduleModalOpen(false);
+                          setSelectedCourseId('');
+                          setStartDate('');
+                          setError('');
+                      }}>
+                          Cancel
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
     </div>
   );
 }
