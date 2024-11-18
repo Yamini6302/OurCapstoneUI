@@ -700,3 +700,41 @@
   font-weight: 600;
   transition: all 0.3s ease;
 }
+
+.modalInputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.modalInput[type="date"] {
+    font-family: inherit;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 16px;
+    color: #555;
+    transition: all 0.3s ease;
+}
+
+.modalInput[type="date"]:focus {
+    border-color: #fb773c;
+    outline: none;
+    box-shadow: 0 0 10px rgba(251, 119, 60, 0.3);
+}
+
+select.modalInput {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+    padding-right: 2.5rem;
+}
+
+select.modalInput:focus {
+    border-color: #fb773c;
+    outline: none;
+    box-shadow: 0 0 10px rgba(251, 119, 60, 0.3);
+}
