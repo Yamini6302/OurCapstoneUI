@@ -3,17 +3,11 @@ import { useNavigate } from "react-router-dom";
 import './css/TutorDashboard.css';  // Import the CSS file
 
 // Add this component before the TutorDashboard function
-const CourseCard = ({ course, onView }) => {
+const CourseCard = ({ course }) => {
     return (
         <div className="courseCard">
             <h3>{course.courseName}</h3>
             <p>{course.description}</p>
-            <button 
-                className="viewButton"
-                onClick={() => onView(course.id)}
-            >
-                View Course
-            </button>
         </div>
     );
 };
@@ -35,6 +29,7 @@ function TutorDashboard() {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [startDate, setStartDate] = useState('');
+  const [forumName, setForumName] = useState('');
 
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId");
@@ -215,84 +210,48 @@ function TutorDashboard() {
     setLoading(true);
     setError("");
     
-    if (!tutorId) {
-      setError("Tutor ID not found. Please try again.");
-      setLoading(false);
-      return;
-    }
-    
     try {
-      // First, create the course
-      const courseResponse = await fetch("http://localhost:7773/api/courses", {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          courseName: courseName,
-          description: courseDescription
-        })
-      });
+        // Create only the course entry
+        const courseResponse = await fetch("http://localhost:7773/api/courses", {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                courseName: courseName,
+                description: courseDescription
+            })
+        });
 
-      if (!courseResponse.ok) {
-        throw new Error("Failed to create course");
-      }
+        if (!courseResponse.ok) {
+            throw new Error("Failed to create course");
+        }
 
-      const courseData = await courseResponse.json();
-      console.log("Created course:", courseData);
+        const courseData = await courseResponse.json();
+        console.log("Created course:", courseData);
 
-      // Create course-tutor association
-      const courseTutorData = {
-        courseId: courseData.id || courseData.courseId, // Handle both possible field names
-        tutorIds: [tutorId.toString()], // Ensure tutorId is a string
-        _class: "com.demo.course_tutor.model.CourseTutor" // Add the class identifier
-      };
-
-      console.log("Sending course-tutor data:", courseTutorData); // Debug log
-
-      const tutorResponse = await fetch("http://localhost:7772/api/course-tutors", {
-        method: "POST",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json"
-        },
-        credentials: 'include',
-        body: JSON.stringify(courseTutorData)
-      });
-      
-      if (!tutorResponse.ok) {
-        const errorText = await tutorResponse.text();
-        console.error("Tutor association failed:", errorText);
-        throw new Error(`Failed to associate tutor: ${errorText}`);
-      }
-
-      const tutorAssociationResult = await tutorResponse.json();
-      console.log("Course-tutor association created:", tutorAssociationResult);
-
-      setIsModalOpen(false);
-      setCourseName("");
-      setCourseDescription("");
-      alert("Course created successfully!");
-      await fetchCourses();
-      
+        setIsModalOpen(false);
+        setCourseName("");
+        setCourseDescription("");
+        alert("Course created successfully!");
+        await fetchCourses();
+        
     } catch (error) {
-      console.error("Error in course creation process:", error);
-      setError("Failed to create course. Please try again.");
+        console.error("Error creating course:", error);
+        setError("Failed to create course. Please try again.");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
   };
   
 
   const fetchMyCourses = async () => {
+    if (!tutorId) return;
+    
     try {
-        setLoading(true);
-        console.log("Fetching courses for tutorId:", tutorId);
-
-        // Get all course-tutor mappings
-        const response = await fetch(`http://localhost:7772/api/course-tutors`, {
+        const response = await fetch(`http://localhost:7772/api/course-tutors/tutor/${tutorId}`, {
             method: "GET",
             headers: {
                 "Accept": "application/json",
@@ -300,49 +259,15 @@ function TutorDashboard() {
             },
             credentials: 'include'
         });
-        
-        if (response.ok) {
-            const courseTutorData = await response.json();
-            console.log("Course-tutor mappings:", courseTutorData);
 
-            // Filter mappings for the current tutor using complete tutorId
-            const relevantMappings = courseTutorData.filter(mapping => 
-                mapping.tutorIds.includes(tutorId.toString()) && mapping.courseId // Ensure courseId exists
-            );
-            console.log("Relevant mappings:", relevantMappings);
-
-            if (relevantMappings.length > 0) {
-                // Fetch course details for each mapping
-                const courseDetailsPromises = relevantMappings.map(mapping =>
-                    fetch(`http://localhost:7773/api/courses/${mapping.courseId}`, {
-                        method: "GET",
-                        headers: {
-                            "Accept": "application/json",
-                            "Content-Type": "application/json"
-                        },
-                        credentials: 'include'
-                    })
-                    .then(res => res.ok ? res.json() : null)
-                    .catch(err => {
-                        console.error(`Error fetching course ${mapping.courseId}:`, err);
-                        return null;
-                    })
-                );
-
-                const courseDetails = (await Promise.all(courseDetailsPromises))
-                    .filter(course => course !== null); // Remove any failed fetches
-                
-                console.log("Fetched course details:", courseDetails);
-                setMyCourses(courseDetails);
-            } else {
-                setMyCourses([]);
-            }
+        if (!response.ok) {
+            throw new Error('Failed to fetch mapped courses');
         }
+
+        const data = await response.json();
+        setMyCourses(data);
     } catch (error) {
-        console.error("Error fetching my courses:", error);
-        setError("Failed to fetch courses");
-    } finally {
-        setLoading(false);
+        console.error("Error fetching mapped courses:", error);
     }
 };
 
@@ -457,21 +382,20 @@ function TutorDashboard() {
 
   useEffect(() => {
     if (tutorId) {
-        setLoading(true);
-        fetchMyCourses()
-            .finally(() => setLoading(false));
+        fetchMyCourses();
     }
   }, [tutorId]);
 
   // Add this function to handle course scheduling
   const handleScheduleCourse = async () => {
-    if (!selectedCourseId || !startDate) {
-        setError("Please select a course and start date");
+    if (!selectedCourseId || !startDate || !forumName) {
+        setError("Please fill in all fields");
         return;
     }
 
     try {
-        const response = await fetch("http://localhost:7772/api/course-schedule", {
+        // First create course-tutor entry
+        const courseTutorResponse = await fetch("http://localhost:7772/api/course-tutors", {
             method: "POST",
             headers: {
                 "Accept": "application/json",
@@ -480,19 +404,43 @@ function TutorDashboard() {
             credentials: 'include',
             body: JSON.stringify({
                 courseId: selectedCourseId,
-                startDate: startDate,
-                tutorId: tutorId
+                tutorIds: [tutorId],
+                startDate: new Date(startDate),
+                _class: "com.demo.course_tutor.model.CourseTutor"
             })
         });
 
-        if (response.ok) {
-            alert("Course scheduled successfully!");
-            setIsScheduleModalOpen(false);
-            setSelectedCourseId('');
-            setStartDate('');
-        } else {
+        if (!courseTutorResponse.ok) {
             throw new Error("Failed to schedule course");
         }
+
+        const courseTutorData = await courseTutorResponse.json();
+        
+        // Then create forum entry using the ctid from course-tutor response
+        const forumResponse = await fetch("http://localhost:7774/api/forum", {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                ctId: courseTutorData.ctid,
+                forumName: forumName
+            })
+        });
+
+        if (!forumResponse.ok) {
+            throw new Error("Failed to create forum");
+        }
+
+        alert("Course scheduled and forum created successfully!");
+        setIsScheduleModalOpen(false);
+        setSelectedCourseId('');
+        setStartDate('');
+        setForumName('');
+        setError('');
+        
     } catch (error) {
         console.error("Error scheduling course:", error);
         setError("Failed to schedule course. Please try again.");
@@ -552,16 +500,15 @@ function TutorDashboard() {
                 <p className="loading">Loading your courses...</p>
             ) : error ? (
                 <p className="error">{error}</p>
-            ) : myCourses.length > 0 ? (
-                myCourses.map((course) => (
+            ) : courses.length > 0 ? (
+                courses.map(course => (
                     <CourseCard 
                         key={course.id} 
-                        course={course} 
-                        onView={(courseId) => navigate(`/course/${courseId}`)}
+                        course={course}
                     />
                 ))
             ) : (
-                <p className="noCourses">You haven't joined any courses yet.</p>
+                <p className="noCourses">No courses available.</p>
             )}
           </div>
         </div>
@@ -656,18 +603,26 @@ function TutorDashboard() {
                           className="modalInput"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
-                          min={new Date().toISOString().split('T')[0]} // Prevents selecting past dates
+                          min={new Date().toISOString().split('T')[0]}
+                      />
+                      <input
+                          type="text"
+                          className="modalInput"
+                          placeholder="Forum Name"
+                          value={forumName}
+                          onChange={(e) => setForumName(e.target.value)}
                       />
                   </div>
                   {error && <p className="error">{error}</p>}
                   <div className="modalButtons">
                       <button onClick={handleScheduleCourse}>
-                          Start Course
+                          Schedule Course
                       </button>
                       <button onClick={() => {
                           setIsScheduleModalOpen(false);
                           setSelectedCourseId('');
                           setStartDate('');
+                          setForumName('');
                           setError('');
                       }}>
                           Cancel
