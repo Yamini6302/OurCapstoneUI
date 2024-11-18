@@ -423,39 +423,56 @@ function TutorDashboard() {
         }
 
         const courseTutorData = await courseTutorResponse.json();
+        console.log("Course-tutor mapping created:", courseTutorData);
+
+        // Extract ctId from the nested structure
+        const ctId = courseTutorData.courseTutor?.id;
         
-        // Then create forum entry using the ctid from course-tutor response
+        if (!ctId) {
+            console.error("Full response:", courseTutorData);
+            throw new Error("Error occured during schedulling, try again later.");
+        }
+
+        console.log("Using ctId:", ctId); // Debug log
+
+        // Then create forum entry using the extracted ctId
         const forumResponse = await fetch("http://localhost:7771/api/forum", {
             method: "POST",
             headers: {
                 "Accept": "application/json",
                 "Content-Type": "application/json"
-            },            credentials: 'include',
+            },
             body: JSON.stringify({
-                ctId: courseTutorData.ctid, // Use the ctid from the course-tutor response
-                forumName: forumName
+                ctId: ctId,
+                forumName: forumName,
+                _class: "com.demo.forum.model.Forum"
             })
         });
 
         if (!forumResponse.ok) {
-            // If forum creation fails, we should ideally rollback the course-tutor entry
+            console.error("Forum creation failed with status:", forumResponse.status);
+            const errorText = await forumResponse.text();
+            console.error("Forum error details:", errorText);
             throw new Error("Failed to create forum");
         }
 
-        // Both operations successful
-        alert("Course scheduled successfully with forum!");
+        const forumData = await forumResponse.json();
+        console.log("Forum created:", forumData);
+
+        // Success handling
         setIsScheduleModalOpen(false);
         setSelectedCourseId('');
         setStartDate('');
         setForumName('');
         setError('');
+        alert("Course scheduled successfully with forum!");
         
         // Refresh the courses list
         await fetchMyCourses();
 
     } catch (error) {
         console.error("Error in course scheduling:", error);
-        setError("Failed to schedule course. Please try again.");
+        setError(`Failed to schedule course: ${error.message}`);
     }
   };
 
