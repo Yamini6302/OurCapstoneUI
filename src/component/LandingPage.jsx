@@ -42,9 +42,9 @@ const LandingPage = () => {
       {/* Header Section - Updated */}
       <header className="header">
         <div className="logo">QuickLearn</div>
-        <nav className="nav-links">
+{/*         <nav className="nav-links">
           <a href="#courses">Courses</a>
-        </nav>
+        </nav> */}
         <div className="cta-buttons">
           <button className="btn primary" onClick={() => window.location.href = '/register'}>
             Sign Up
@@ -61,7 +61,7 @@ const LandingPage = () => {
           <h1>Unlock Your Learning Potential</h1>
           <p>Explore courses, connect with tutors, and grow your skills.</p>
           <div className="hero-buttons">
-            <button className="btn primary"onClick={() => window.location.href = '#course'}>Explore Courses</button>
+{/*             <button className="btn primary"onClick={() => window.location.href = '#course'}>Explore Courses</button> */}
             <button className="btn secondary" onClick={() => window.location.href = '/login'}>Get Started</button>
           </div>
         </div>
@@ -114,7 +114,7 @@ const LandingPage = () => {
           </div>
           
           <div className="footer-section">
-            <h3>Contact Us</h3>
+{/*             <h3>Contact Us</h3> */}
             <div className="social-icons">
               <a href="#" aria-label="Facebook">
                 <i className="fab fa-facebook-f"></i>
