@@ -197,37 +197,40 @@ function TutorDashboard() {
       }
 
       const courseData = await courseResponse.json();
+      console.log("Created course:", courseData);
 
-      try {
-        // Then, create the course-tutor association
-        const tutorResponse = await fetch("http://localhost:7772/api/course-tutors", {
-          method: "POST",
-          headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            courseId: courseData.id,
-            tutorIds: [parseInt(tutorId)]
-          })
-        });
-        
-        // Don't throw error even if tutorResponse is not ok
-        console.log("Tutor association response:", tutorResponse.status);
-        
-      } catch (tutorError) {
-        console.warn("Warning: Tutor association might have failed:", tutorError);
-        // Continue execution even if this fails
+      // Create course-tutor association
+      const courseTutorData = {
+        courseId: courseData.id || courseData.courseId, // Handle both possible field names
+        tutorIds: [tutorId.toString()], // Ensure tutorId is a string
+        _class: "com.demo.course_tutor.model.CourseTutor" // Add the class identifier
+      };
+
+      console.log("Sending course-tutor data:", courseTutorData); // Debug log
+
+      const tutorResponse = await fetch("http://localhost:7772/api/course-tutors", {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        credentials: 'include',
+        body: JSON.stringify(courseTutorData)
+      });
+      
+      if (!tutorResponse.ok) {
+        const errorText = await tutorResponse.text();
+        console.error("Tutor association failed:", errorText);
+        throw new Error(`Failed to associate tutor: ${errorText}`);
       }
 
-      // Success handling
+      const tutorAssociationResult = await tutorResponse.json();
+      console.log("Course-tutor association created:", tutorAssociationResult);
+
       setIsModalOpen(false);
       setCourseName("");
       setCourseDescription("");
       alert("Course created successfully!");
-      
-      // Refresh the course list
       await fetchCourses();
       
     } catch (error) {
@@ -241,6 +244,10 @@ function TutorDashboard() {
 
   const fetchMyCourses = async () => {
     try {
+        setLoading(true);
+        console.log("Fetching courses for tutorId:", tutorId);
+
+        // Get all course-tutor mappings
         const response = await fetch(`http://localhost:7772/api/course-tutors`, {
             method: "GET",
             headers: {
@@ -249,26 +256,49 @@ function TutorDashboard() {
             },
             credentials: 'include'
         });
+        
         if (response.ok) {
-            const data = await response.json();
-            const myCourseIds = data
-                .filter(ct => ct.tutorIds.includes(userId))
-                .map(ct => ct.courseId);
-            const coursesPromises = myCourseIds.map(courseId =>
-                fetch(`http://localhost:7773/api/courses/${courseId}`, {
-                    method: "GET",
-                    headers: {
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    credentials: 'include'
-                }).then(res => res.json())
+            const courseTutorData = await response.json();
+            console.log("Course-tutor mappings:", courseTutorData);
+
+            // Filter mappings for the current tutor using complete tutorId
+            const relevantMappings = courseTutorData.filter(mapping => 
+                mapping.tutorIds.includes(tutorId.toString()) && mapping.courseId // Ensure courseId exists
             );
-            const myCoursesList = await Promise.all(coursesPromises);
-            setMyCourses(myCoursesList); // Store fetched courses
+            console.log("Relevant mappings:", relevantMappings);
+
+            if (relevantMappings.length > 0) {
+                // Fetch course details for each mapping
+                const courseDetailsPromises = relevantMappings.map(mapping =>
+                    fetch(`http://localhost:7773/api/courses/${mapping.courseId}`, {
+                        method: "GET",
+                        headers: {
+                            "Accept": "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        credentials: 'include'
+                    })
+                    .then(res => res.ok ? res.json() : null)
+                    .catch(err => {
+                        console.error(`Error fetching course ${mapping.courseId}:`, err);
+                        return null;
+                    })
+                );
+
+                const courseDetails = (await Promise.all(courseDetailsPromises))
+                    .filter(course => course !== null); // Remove any failed fetches
+                
+                console.log("Fetched course details:", courseDetails);
+                setMyCourses(courseDetails);
+            } else {
+                setMyCourses([]);
+            }
         }
     } catch (error) {
         console.error("Error fetching my courses:", error);
+        setError("Failed to fetch courses");
+    } finally {
+        setLoading(false);
     }
 };
 
@@ -408,18 +438,29 @@ function TutorDashboard() {
         <div className="modalContent">
             <h3>My Courses</h3>
             <div className="myCoursesList">
-                {myCourses.map((course) => (
-                    <div key={course.id} className="myCourseCard">
-                        <h4>{course.courseName}</h4>
-                        <p>{course.description}</p>
-                        <button className="viewButton" onClick={() => { 
-                            setIsMyCoursesModalOpen(false); 
-                            navigate(`/course/${course.id}`); 
-                        }}>
-                            View Course
-                        </button>
-                    </div>
-                ))}
+                {loading ? (
+                    <p className="loading">Loading your courses...</p>
+                ) : error ? (
+                    <p className="error">{error}</p>
+                ) : myCourses.length > 0 ? (
+                    myCourses.map((course) => (
+                        <div key={course.id} className="myCourseCard">
+                            <h4>{course.courseName}</h4>
+                            <p>{course.description}</p>
+                            <button 
+                                className="viewButton" 
+                                onClick={() => { 
+                                    setIsMyCoursesModalOpen(false); 
+                                    navigate(`/course/${course.id}`); 
+                                }}
+                            >
+                                View Course
+                            </button>
+                        </div>
+                    ))
+                ) : (
+                    <p className="noCourses">You haven't joined any courses yet.</p>
+                )}
             </div>
             <div className="modalButtons">
                 <button onClick={() => setIsMyCoursesModalOpen(false)}>Close</button>
