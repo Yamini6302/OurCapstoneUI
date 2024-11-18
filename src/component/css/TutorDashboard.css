@@ -700,39 +700,3 @@
   font-weight: 600;
   transition: all 0.3s ease;
 }
-
-.sectionTitle {
-    font-size: 1.8rem;
-    color: #333;
-    margin: 20px 0;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #eee;
-    position: relative;
-}
-
-.sectionTitle::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 100px;
-    height: 2px;
-    background: linear-gradient(135deg, #180161, #faa331);
-}
-
-.loading {
-    text-align: center;
-    padding: 20px;
-    font-size: 1.1rem;
-    color: #666;
-}
-
-.noCourses {
-    text-align: center;
-    padding: 40px;
-    font-size: 1.1rem;
-    color: #666;
-    background: rgba(0,0,0,0.05);
-    border-radius: 10px;
-    margin: 20px 0;
-}
