@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./css/TutorDetails.css";
-import Lottie from "react-lottie";
+import Lottie from "lottie-react";
 
 const baseUrl = "http://localhost:7777/api/tutor";
 
@@ -45,7 +45,7 @@ function TutorDetails() {
       const data = await response.json();
       if (data.tutorId) {
         sessionStorage.setItem("tutorId", data.tutorId);
-        navigate("/Dashboard");
+        navigate("/login");
       } else {
         console.error("Tutor ID not found in response:", data);
         alert("Failed to register tutor. Please try again.");
@@ -63,7 +63,7 @@ function TutorDetails() {
        {/* Logo and App Name Section */}
        <div className="logo-container">
         <img
-          src="src/assets/logo (1).png" // Replace with your logo path
+          src="/logo.png" // Replace with your logo path
           alt="App Logo"
           className="app-logo"
         />
@@ -99,7 +99,7 @@ function TutorDetails() {
           </div>
 
           <button type="submit" className="next-btn" disabled={isSubmitting}>
-            {isSubmitting ? "Submitting..." : "Next"}
+            {isSubmitting ? "Submitting..." : "Register"}
           </button>
         </form>
       </div>
