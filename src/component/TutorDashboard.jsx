@@ -425,7 +425,7 @@ function TutorDashboard() {
         const courseTutorData = await courseTutorResponse.json();
         
         // Then create forum entry using the ctid from course-tutor response
-        const forumResponse = await fetch("http://localhost:7774/api/forum", {
+        const forumResponse = await fetch("http://localhost:7771/api/forum", {
             method: "POST",
             headers: {
                 "Accept": "application/json",
