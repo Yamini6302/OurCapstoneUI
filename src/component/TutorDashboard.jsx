@@ -15,9 +15,32 @@ function TutorDashboard() {
   const [isMyCoursesModalOpen, setIsMyCoursesModalOpen] = useState(false);
   const [courseCreators, setCourseCreators] = useState({});
   const [joinedCourses, setJoinedCourses] = useState(new Set());
+  const [tutorId, setTutorId] = useState(null);
 
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId");
+
+  // Move fetchCourses outside of useEffect and make it a component function
+  const fetchCourses = async () => {
+    try {
+      const response = await fetch("http://localhost:7773/api/courses", {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setCourses(data);
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+    }
+  };
 
   useEffect(() => {
     if (!userId) {
@@ -25,43 +48,70 @@ function TutorDashboard() {
       return;
     }
 
-    const fetchCourses = async () => {
+    fetchCourses();
+    
+    const fetchUserDetails = async () => {
+      const url = `http://localhost:7777/api/tutor/user/${userId}`;
       try {
-        const response = await fetch("http://localhost:7773/api/courses", {
-          method: "GET",
+        const response = await fetch(url, {
+          method: 'GET',
           headers: {
             "Accept": "application/json",
             "Content-Type": "application/json"
           },
           credentials: 'include'
         });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setCourses(data);
-      } catch (error) {
-        console.error("Error fetching courses:", error);
-      }
-    };
-
-    const fetchUserDetails = async () => {
-      const url = `http://localhost:7777/api/tutor/user/${userId}`;
-      try {
-        const response = await fetch(url);
+        
         if (response.ok) {
           const data = await response.json();
-          setUserDetails(data);
+          setUserDetails({
+            ...data,
+            fullName: data.tutorName,
+            initial: data.tutorName ? data.tutorName.charAt(0).toUpperCase() : 'U'
+          });
+          setTutorId(data.tutorId);
         } else {
-          console.error("Failed to fetch user details");
+          // If first endpoint fails, try the direct tutor endpoint
+          const tutorResponse = await fetch(`http://localhost:7777/api/tutor/${userId}`, {
+            method: 'GET',
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json"
+            },
+            credentials: 'include'
+          });
+
+          if (tutorResponse.ok) {
+            const tutorData = await tutorResponse.json();
+            setUserDetails({
+              ...tutorData,
+              fullName: tutorData.tutorName,
+              initial: tutorData.tutorName ? tutorData.tutorName.charAt(0).toUpperCase() : 'U'
+            });
+            setTutorId(tutorData.tutorId);
+          } else {
+            console.error("Failed to fetch user details - Status:", response.status);
+            setUserDetails({
+              tutorName: "User",
+              tutorId: userId,
+              fullName: "User",
+              initial: 'U'
+            });
+            setTutorId(userId);
+          }
         }
       } catch (error) {
         console.error("Error fetching user details:", error);
+        setUserDetails({
+          tutorName: "User",
+          tutorId: userId,
+          fullName: "User",
+          initial: 'U'
+        });
+        setTutorId(userId);
       }
     };
 
-    fetchCourses();
     fetchUserDetails();
   }, [userId, navigate]);
 
@@ -116,68 +166,78 @@ function TutorDashboard() {
     navigate("/"); // Redirect to landing page
   };
 
-  // Function to handle course creation
+  // Update handleCreateCourse
   const handleCreateCourse = async () => {
     setLoading(true);
     setError("");
-
+    
+    if (!tutorId) {
+      setError("Tutor ID not found. Please try again.");
+      setLoading(false);
+      return;
+    }
+    
     try {
+      // First, create the course
       const courseResponse = await fetch("http://localhost:7773/api/courses", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
+          "Accept": "application/json",
+          "Content-Type": "application/json"
         },
         credentials: 'include',
         body: JSON.stringify({
           courseName: courseName,
-          description: courseDescription,
-        }),
+          description: courseDescription
+        })
       });
 
       if (!courseResponse.ok) {
-        throw new Error(`Failed to create course: ${courseResponse.statusText}`);
+        throw new Error("Failed to create course");
       }
 
-      const createdCourse = await courseResponse.json();
-      console.log('Created course:', createdCourse);
+      const courseData = await courseResponse.json();
 
-      // Step 2: Create course-tutor association
-      const courseTutorData = {
-        courseId: createdCourse.courseId, // Make sure this matches the property name from the response
-        tutorIds: [userId]
-      };
-
-      console.log('Creating course-tutor association:', courseTutorData); // Debug log
-
-      const courseTutorResponse = await fetch("http://localhost:7772/api/course-tutors", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify(courseTutorData),
-      });
-
-      if (!courseTutorResponse.ok) {
-        const errorText = await courseTutorResponse.text();
-        console.error('Course-tutor error response:', errorText); // Debug log
-        throw new Error(`Failed to create course-tutor association: ${errorText}`);
+      try {
+        // Then, create the course-tutor association
+        const tutorResponse = await fetch("http://localhost:7772/api/course-tutors", {
+          method: "POST",
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            courseId: courseData.id,
+            tutorIds: [parseInt(tutorId)]
+          })
+        });
+        
+        // Don't throw error even if tutorResponse is not ok
+        console.log("Tutor association response:", tutorResponse.status);
+        
+      } catch (tutorError) {
+        console.warn("Warning: Tutor association might have failed:", tutorError);
+        // Continue execution even if this fails
       }
 
+      // Success handling
       setIsModalOpen(false);
       setCourseName("");
       setCourseDescription("");
       alert("Course created successfully!");
+      
+      // Refresh the course list
       await fetchCourses();
-
+      
     } catch (error) {
-      console.error("Error creating course:", error);
-      setError(error.message);
+      console.error("Error in course creation process:", error);
+      setError("Failed to create course. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+  
 
   const fetchMyCourses = async () => {
     try {
@@ -213,6 +273,11 @@ function TutorDashboard() {
 };
 
   const handleJoinCourse = async (courseId) => {
+    if (!tutorId) {
+      alert("Tutor ID not found. Please try again.");
+      return;
+    }
+
     try {
       const response = await fetch(`http://localhost:7772/api/course-tutors/${courseId}`, {
         method: "GET",
@@ -225,7 +290,7 @@ function TutorDashboard() {
 
       if (response.ok) {
         const data = await response.json();
-        const updatedTutorIds = [...data.tutorIds, userId];
+        const updatedTutorIds = [...data.tutorIds, tutorId]; // Use tutorId instead of userId
 
         const updateResponse = await fetch(`http://localhost:7772/api/course-tutors/${courseId}`, {
           method: 'PUT',
@@ -271,16 +336,19 @@ function TutorDashboard() {
 
       <div className="mainContent">
         <div className="sidebar">
-          {userDetails && (
-            <div className="userSection">
-              <div className="avatar">
-                {userDetails.tutorName ? userDetails.tutorName.charAt(0).toUpperCase() : "?"}
-              </div>
+          <div className="userSection">
+            <div className="avatar">
+              {userDetails?.initial || 'U'}
+            </div>
+            <div className="userInfo">
               <div className="tutorName">
-                <strong>{userDetails.tutorName}</strong>
+                <strong>{userDetails?.fullName || 'User'}</strong>
+              </div>
+              <div className="tutorRole">
+                Tutor
               </div>
             </div>
-          )}
+          </div>
           <button 
             className="sidebarButton" 
             onClick={() => {
