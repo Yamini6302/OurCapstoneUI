@@ -2,6 +2,72 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import './css/TutorDashboard.css';  // Import the CSS file
 
+// Add this component before the TutorDashboard function
+const CourseCard = ({ course, tutorId, onJoin, onView, courseCreator }) => {
+    const [isMapped, setIsMapped] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const checkMapping = async () => {
+            try {
+                const response = await fetch(`http://localhost:7772/api/course-tutors/${course.id}`, {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setIsMapped(data.tutorIds.includes(tutorId));
+                }
+            } catch (error) {
+                console.error(`Error checking course mapping for ${course.id}:`, error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        
+        if (tutorId) {
+            checkMapping();
+        }
+    }, [course.id, tutorId]);
+
+    if (isLoading) {
+        return <div className="courseCard"><p>Loading...</p></div>;
+    }
+
+    return (
+        <div className="courseCard">
+            <h3>{course.courseName}</h3>
+            <p>{course.description}</p>
+            <p className="courseCreator">
+                Created by: {courseCreator || 'Loading...'}
+            </p>
+            {isMapped ? (
+                <>
+                    <p className="joinedStatus">You have already joined this course</p>
+                    <button 
+                        className="viewButton"
+                        onClick={() => onView(course.id)}
+                    >
+                        View Course
+                    </button>
+                </>
+            ) : (
+                <button 
+                    className="joinButton"
+                    onClick={() => onJoin(course.id)}
+                >
+                    Join Course
+                </button>
+            )}
+        </div>
+    );
+};
+
 function TutorDashboard() {
   const [courses, setCourses] = useState([]);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
@@ -119,46 +185,71 @@ function TutorDashboard() {
     const creators = {};
     const joined = new Set();
     
-    for (const course of courses) {
-        try {
-            const response = await fetch(`http://localhost:7772/api/course-tutors/${course.id}`, {
-                method: "GET",
-                headers: {
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
-                },
-                credentials: 'include'
-            });
+    try {
+        // Fetch all course-tutor mappings first
+        const courseTutorResponse = await fetch(`http://localhost:7772/api/course-tutors`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'include'
+        });
+
+        if (courseTutorResponse.ok) {
+            const courseTutorData = await courseTutorResponse.json();
             
-            if (response.ok) {
-                const data = await response.json();
-                const creatorId = data.tutorIds[0]; // Fetching first tutor ID
-                if (data.tutorIds.includes(userId)) {
-                    joined.add(course.id);
+            // Check which courses the current tutor is part of
+            courseTutorData.forEach(mapping => {
+                if (mapping.tutorIds.includes(tutorId) && mapping.courseId) {
+                    joined.add(mapping.courseId);
                 }
-                
-                // Fetch tutor details
-                const tutorResponse = await fetch(`http://localhost:7777/api/tutor/${creatorId}`, {
-                    method: "GET",
-                    headers: {
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    credentials: 'include'
-                });
-                
-                if (tutorResponse.ok) {
-                    const tutorData = await tutorResponse.json();
-                    creators[course.id] = tutorData.tutorName; // Store tutor name
+            });
+
+            // Set joined courses
+            setJoinedCourses(joined);
+            
+            // Fetch creator details for each course
+            for (const course of courses) {
+                try {
+                    const response = await fetch(`http://localhost:7772/api/course-tutors/${course.id}`, {
+                        method: "GET",
+                        headers: {
+                            "Accept": "application/json",
+                            "Content-Type": "application/json"
+                        },
+                        credentials: 'include'
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.tutorIds && data.tutorIds.length > 0) {
+                            // Fetch the creator's (first tutor) details
+                            const creatorResponse = await fetch(`http://localhost:7777/api/tutor/${data.tutorIds[0]}`, {
+                                method: "GET",
+                                headers: {
+                                    "Accept": "application/json",
+                                    "Content-Type": "application/json"
+                                },
+                                credentials: 'include'
+                            });
+
+                            if (creatorResponse.ok) {
+                                const creatorData = await creatorResponse.json();
+                                creators[course.id] = creatorData.tutorName;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error fetching creator for course ${course.id}:`, error);
                 }
             }
-        } catch (error) {
-            console.error("Error fetching course creator:", error);
         }
+    } catch (error) {
+        console.error("Error in fetchCourseCreators:", error);
     }
     
     setCourseCreators(creators);
-    setJoinedCourses(joined);
 };
 
   const handleLogout = () => {
@@ -346,6 +437,79 @@ function TutorDashboard() {
     }
   };
 
+  // Add this new function to check joined courses
+  const checkJoinedCourses = async () => {
+    try {
+        const response = await fetch(`http://localhost:7772/api/course-tutors`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            const courseTutorData = await response.json();
+            console.log("Course-tutor mappings:", courseTutorData);
+            console.log("Current tutorId:", tutorId);
+
+            // Find all courses where this tutor is mapped
+            const joinedCourseIds = new Set(
+                courseTutorData
+                    .filter(mapping => 
+                        mapping.tutorIds.includes(tutorId) && 
+                        mapping.courseId
+                    )
+                    .map(mapping => mapping.courseId)
+            );
+
+            console.log("Joined course IDs:", joinedCourseIds);
+            setJoinedCourses(joinedCourseIds);
+        }
+    } catch (error) {
+        console.error("Error checking joined courses:", error);
+    }
+  };
+
+  // Update the useEffect to call checkJoinedCourses when tutorId is available
+  useEffect(() => {
+    if (tutorId) {
+        checkJoinedCourses();
+    }
+  }, [tutorId]);
+
+  // Add this new function to check if tutor is mapped to a course
+  const checkTutorCourseMapping = async (courseId) => {
+    try {
+        const response = await fetch(`http://localhost:7772/api/course-tutors/${courseId}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            return data.tutorIds.includes(tutorId);
+        }
+        return false;
+    } catch (error) {
+        console.error(`Error checking course mapping for ${courseId}:`, error);
+        return false;
+    }
+  };
+
+  useEffect(() => {
+    if (tutorId) {
+        setLoading(true);
+        fetchMyCourses()
+            .finally(() => setLoading(false));
+    }
+  }, [tutorId]);
+
   return (
     <div className="container">
       <header className="header">
@@ -379,15 +543,6 @@ function TutorDashboard() {
               </div>
             </div>
           </div>
-          <button 
-            className="sidebarButton" 
-            onClick={() => {
-              fetchMyCourses();
-              setIsMyCoursesModalOpen(true);
-            }}
-          >
-            My Courses
-          </button>
           <button className="sidebarButton" onClick={() => setIsModalOpen(true)}>
             Create Course
           </button>
@@ -399,34 +554,30 @@ function TutorDashboard() {
               <h2>👋 Hello, {userDetails.tutorName}!</h2>
             </div>
           )}
+          <h2 className="sectionTitle">My Courses</h2>
           <div className="courseList">
-            {courses.length > 0 ? (
-              courses.map((course) => (
-                <div key={course.id} className="courseCard">
-                  <h3>{course.courseName}</h3>
-                  <p>{course.description}</p>
-                  <p className="courseCreator">
-                    Created by: {courseCreators[course.id] || 'Loading...'}
-                  </p>
-                  {joinedCourses.has(course.id) ? (
-                    <button 
-                      className="viewButton"
-                      onClick={() => navigate(`/course/${course.id}`)}
-                    >
-                      View Course
-                    </button>
-                  ) : (
-                    <button 
-                      className="joinButton"
-                      onClick={() => handleJoinCourse(course.id)}
-                    >
-                      Join Course
-                    </button>
-                  )}
-                </div>
-              ))
+            {loading ? (
+                <p className="loading">Loading your courses...</p>
+            ) : error ? (
+                <p className="error">{error}</p>
+            ) : myCourses.length > 0 ? (
+                myCourses.map((course) => (
+                    <div key={course.id} className="courseCard">
+                        <h3>{course.courseName}</h3>
+                        <p>{course.description}</p>
+                        <p className="courseCreator">
+                            Created by: {courseCreators[course.id] || 'Loading...'}
+                        </p>
+                        <button 
+                            className="viewButton"
+                            onClick={() => navigate(`/course/${course.id}`)}
+                        >
+                            View Course
+                        </button>
+                    </div>
+                ))
             ) : (
-              <p>No courses available.</p>
+                <p className="noCourses">You haven't joined any courses yet.</p>
             )}
           </div>
         </div>
