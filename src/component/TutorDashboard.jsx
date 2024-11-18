@@ -560,7 +560,7 @@ function TutorDashboard() {
               <h2>👋 Hello, {userDetails.tutorName}!</h2>
             </div>
           )}
-          <h2 className="sectionTitle">My Created Courses</h2>
+          <h2 className="sectionTitle">My Courses</h2>
           <div className="courseList">
             {loading ? (
                 <p className="loading">Loading your courses...</p>
