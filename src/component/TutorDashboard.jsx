@@ -5,7 +5,7 @@ import './css/TutorDashboard.css';  // Import the CSS file
 // Add this component before the TutorDashboard function
 const CourseCard = ({ course }) => {
     return (
-        <div className="courseCard">
+        <div className="courseCard" key={course.courseId}>
             <h3>{course.courseName}</h3>
             <p>{course.description}</p>
         </div>
@@ -217,6 +217,7 @@ function TutorDashboard() {
     }
 
     try {
+        console.log("Creating course with tutorId:", tutorId);
         const courseResponse = await fetch("http://localhost:7773/api/courses", {
             method: "POST",
             headers: {
@@ -227,7 +228,7 @@ function TutorDashboard() {
             body: JSON.stringify({
                 courseName: courseName,
                 description: courseDescription,
-                tutorId: tutorId  // Add tutorId to the request
+                tutorId: tutorId
             })
         });
 
@@ -238,11 +239,9 @@ function TutorDashboard() {
         const courseData = await courseResponse.json();
         console.log("Course created:", courseData);
 
-        // Clear form and close modal
         setIsModalOpen(false);
         setCourseName("");
         setCourseDescription("");
-        alert("Course created successfully!");
         
         // Fetch updated courses
         await fetchCreatedCourses();
@@ -431,8 +430,7 @@ function TutorDashboard() {
             headers: {
                 "Accept": "application/json",
                 "Content-Type": "application/json"
-            },
-            credentials: 'include',
+            },            credentials: 'include',
             body: JSON.stringify({
                 ctId: courseTutorData.ctid, // Use the ctid from the course-tutor response
                 forumName: forumName
@@ -463,9 +461,13 @@ function TutorDashboard() {
 
   // Update fetchCreatedCourses to only get courses created by the current tutor
   const fetchCreatedCourses = async () => {
-    if (!tutorId) return;
+    if (!tutorId) {
+        console.log("No tutorId available");
+        return;
+    }
     
     try {
+        console.log("Fetching courses for tutorId:", tutorId);
         const response = await fetch(`http://localhost:7773/api/courses/tutor/${tutorId}`, {
             method: "GET",
             headers: {
@@ -479,9 +481,11 @@ function TutorDashboard() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        console.log("Fetched courses:", data);
         setCourses(data);
     } catch (error) {
         console.error("Error fetching created courses:", error);
+        setError("Failed to fetch courses");
     }
   };
 
@@ -539,18 +543,17 @@ function TutorDashboard() {
               <h2>👋 Hello, {userDetails.tutorName}!</h2>
             </div>
           )}
-          <h2 className="sectionTitle">My Courses</h2>
+          <h2 className="sectionTitle">My Created Courses</h2>
           <div className="courseList">
             {loading ? (
                 <p className="loading">Loading your courses...</p>
             ) : error ? (
                 <p className="error">{error}</p>
-            ) : courses.length > 0 ? (
+            ) : courses && courses.length > 0 ? (
                 courses.map((course) => (
                     <CourseCard 
-                        key={course.id} 
-                        course={course} 
-                        onView={(courseId) => navigate(`/course/${courseId}`)}
+                        key={course.courseId} 
+                        course={course}
                     />
                 ))
             ) : (
@@ -638,13 +641,13 @@ function TutorDashboard() {
                           onChange={(e) => setSelectedCourseId(e.target.value)}
                       >
                           <option value="">Select a Course</option>
-                          {courses.map(course => (
-                              <option key={course.id} value={course.id}>
+                          {courses && courses.map(course => (
+                              <option key={course.courseId} value={course.courseId}>
                                   {course.courseName}
                               </option>
                           ))}
                       </select>
-                      {courses.length === 0 && (
+                      {(!courses || courses.length === 0) && (
                           <p className="noCoursesMessage">No courses available. Create a course first.</p>
                       )}
                       <input 
