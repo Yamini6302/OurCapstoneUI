@@ -30,6 +30,8 @@ function TutorDashboard() {
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [startDate, setStartDate] = useState('');
   const [forumName, setForumName] = useState('');
+  const [isScheduledCoursesModalOpen, setIsScheduledCoursesModalOpen] = useState(false);
+  const [scheduledCourses, setScheduledCourses] = useState([]);
 
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId");
@@ -419,23 +421,19 @@ function TutorDashboard() {
         });
 
         if (!courseTutorResponse.ok) {
+            const errorText = await courseTutorResponse.text();
+            console.error("Course-tutor creation failed:", errorText);
             throw new Error("Failed to create course-tutor mapping");
         }
 
         const courseTutorData = await courseTutorResponse.json();
         console.log("Course-tutor mapping created:", courseTutorData);
 
-        // Extract ctId from the nested structure
-        const ctId = courseTutorData.courseTutor?.id;
-        
-        if (!ctId) {
-            console.error("Full response:", courseTutorData);
-            throw new Error("Error occured during schedulling, try again later.");
-        }
+        // Extract the correct ID from the response
+        const ctId = courseTutorData.courseTutor.ctid;
+        console.log("Using ctId for forum creation:", ctId);
 
-        console.log("Using ctId:", ctId); // Debug log
-
-        // Then create forum entry using the extracted ctId
+        // Then create forum entry
         const forumResponse = await fetch("http://localhost:7771/api/forum", {
             method: "POST",
             headers: {
@@ -457,7 +455,7 @@ function TutorDashboard() {
         }
 
         const forumData = await forumResponse.json();
-        console.log("Forum created:", forumData);
+        console.log("Forum created successfully:", forumData);
 
         // Success handling
         setIsScheduleModalOpen(false);
@@ -513,6 +511,137 @@ function TutorDashboard() {
     }
   }, [tutorId]);
 
+  // Add function to fetch scheduled courses
+  const fetchScheduledCourses = async () => {
+    try {
+        // First get all forums for this tutor
+        const forumResponse = await fetch(`http://localhost:7771/api/forum/tutor/${tutorId}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!forumResponse.ok) {
+            throw new Error("Failed to fetch forums");
+        }
+
+        const forums = await forumResponse.json();
+        
+        // Get course details for each forum's course
+        const coursesData = await Promise.all(
+            forums.map(async (forum) => {
+                const courseResponse = await fetch(`http://localhost:7773/api/courses/${forum.courseId}`, {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+                if (courseResponse.ok) {
+                    const course = await courseResponse.json();
+                    return {
+                        ...course,
+                        forumName: forum.forumName,
+                        startDate: forum.startDate
+                    };
+                }
+                return null;
+            })
+        );
+
+        setScheduledCourses(coursesData.filter(course => course !== null));
+    } catch (error) {
+        console.error("Error fetching scheduled courses:", error);
+        setError("Failed to fetch scheduled courses");
+    }
+  };
+
+  // Add this function to fetch and display scheduled courses
+  const handleViewScheduledCourses = async () => {
+    if (!tutorId) {
+        console.error("No tutor ID available");
+        return;
+    }
+
+    try {
+        console.log("Fetching scheduled courses for tutorId:", tutorId);
+        
+        // Fetch course-tutor mappings
+        const courseTutorUrl = `http://localhost:7772/api/course-tutors/tutor/${tutorId}`;
+        console.log("Fetching from URL:", courseTutorUrl);
+        
+        const courseTutorResponse = await fetch(courseTutorUrl, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!courseTutorResponse.ok) {
+            const errorText = await courseTutorResponse.text();
+            console.error("Course-tutor response error:", errorText);
+            throw new Error(`HTTP error! status: ${courseTutorResponse.status}`);
+        }
+
+        const courseTutorMappings = await courseTutorResponse.json();
+        console.log("Course-tutor mappings received:", courseTutorMappings);
+
+        if (!courseTutorMappings || courseTutorMappings.length === 0) {
+            console.log("No scheduled courses found");
+            setScheduledCourses([]);
+            setIsScheduledCoursesModalOpen(true);
+            return;
+        }
+
+        // Fetch course details for each mapping
+        const scheduledCoursesData = await Promise.all(
+            courseTutorMappings.map(async (mapping) => {
+                try {
+                    const courseUrl = `http://localhost:7773/api/courses/${mapping.courseId}`;
+                    console.log("Fetching course details from:", courseUrl);
+                    
+                    const courseResponse = await fetch(courseUrl, {
+                        method: "GET",
+                        headers: {
+                            "Accept": "application/json",
+                            "Content-Type": "application/json"
+                        }
+                    });
+
+                    if (!courseResponse.ok) {
+                        throw new Error(`Failed to fetch course: ${courseResponse.status}`);
+                    }
+
+                    const courseData = await courseResponse.json();
+                    console.log("Course data received for", mapping.courseId, ":", courseData);
+
+                    return {
+                        ctid: mapping.ctid,
+                        startDate: mapping.startDate,
+                        course: courseData
+                    };
+                } catch (error) {
+                    console.error("Error fetching course details:", error);
+                    return null;
+                }
+            })
+        );
+
+        const validCourses = scheduledCoursesData.filter(course => course !== null);
+        console.log("Final scheduled courses data:", validCourses);
+
+        setScheduledCourses(validCourses);
+        setIsScheduledCoursesModalOpen(true);
+
+    } catch (error) {
+        console.error("Error in handleViewScheduledCourses:", error);
+        setError(`Failed to fetch scheduled courses: ${error.message}`);
+    }
+  };
+
   return (
     <div className="container">
       <header className="header">
@@ -546,12 +675,17 @@ function TutorDashboard() {
               </div>
             </div>
           </div>
-          <button className="sidebarButton" onClick={() => setIsModalOpen(true)}>
-            Create Course
-          </button>
-          <button className="sidebarButton" onClick={() => setIsScheduleModalOpen(true)}>
-            Schedule Course
-          </button>
+          <div className="sidebarButtons">
+            <button className="sidebarButton" onClick={() => setIsModalOpen(true)}>
+                Create Course
+            </button>
+            <button className="sidebarButton" onClick={() => setIsScheduleModalOpen(true)}>
+                Schedule Course
+            </button>
+            <button className="sidebarButton" onClick={handleViewScheduledCourses}>
+                View Scheduled Courses
+            </button>
+          </div>
         </div>
 
         <div className="rightColumn">
@@ -698,6 +832,40 @@ function TutorDashboard() {
                           setError('');
                       }}>
                           Cancel
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
+
+      {/* Scheduled Courses Modal */}
+      {isScheduledCoursesModalOpen && (
+          <div className="modalOverlay">
+              <div className="modalContent">
+                  <h3>Scheduled Courses</h3>
+                  <div className="scheduledCoursesList">
+                      {scheduledCourses.length > 0 ? (
+                          scheduledCourses.map((item) => (
+                              <div key={item.ctid} className="scheduledCourseCard">
+                                  <h4>{item.course.courseName}</h4>
+                                  <p>{item.course.description}</p>
+                                  <div className="courseDetails">
+                                      <span className="startDate">
+                                          Starts: {new Date(item.startDate).toLocaleDateString()}
+                                      </span>
+                                  </div>
+                              </div>
+                          ))
+                      ) : (
+                          <p className="noCoursesMessage">No scheduled courses found</p>
+                      )}
+                  </div>
+                  <div className="modalButtons">
+                      <button 
+                          className="closeButton"
+                          onClick={() => setIsScheduledCoursesModalOpen(false)}
+                      >
+                          Close
                       </button>
                   </div>
               </div>
