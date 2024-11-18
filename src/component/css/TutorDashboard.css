@@ -244,6 +244,8 @@
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative; /* Added for gradient border */
+  display: flex;
+  flex-direction: column;
 }
 
 /* Add gradient border effect */
@@ -653,4 +655,84 @@
 .myCourseCard:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.joinedStatus {
+  font-size: 0.9rem;
+  color: #28a745;
+  font-style: italic;
+  margin: 10px 0;
+  text-align: center;
+}
+
+.courseCard {
+  /* ... existing styles ... */
+  display: flex;
+  flex-direction: column;
+}
+
+.courseCard .viewButton,
+.courseCard .joinButton {
+  margin-top: auto; /* This will push the button to the bottom */
+}
+
+/* Update existing button styles */
+.joinButton {
+  background: linear-gradient(135deg, #180161, #290944);
+  color: white;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.viewButton {
+  background: linear-gradient(135deg, #37cf3e, #07520b);
+  color: white;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.sectionTitle {
+    font-size: 1.8rem;
+    color: #333;
+    margin: 20px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+    position: relative;
+}
+
+.sectionTitle::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100px;
+    height: 2px;
+    background: linear-gradient(135deg, #180161, #faa331);
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.1rem;
+    color: #666;
+}
+
+.noCourses {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.1rem;
+    color: #666;
+    background: rgba(0,0,0,0.05);
+    border-radius: 10px;
+    margin: 20px 0;
 }
