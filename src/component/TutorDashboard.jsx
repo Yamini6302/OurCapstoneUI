@@ -210,8 +210,13 @@ function TutorDashboard() {
     setLoading(true);
     setError("");
     
+    if (!courseName || !courseDescription) {
+        setError("Please fill in all fields");
+        setLoading(false);
+        return;
+    }
+
     try {
-        // Create only the course entry
         const courseResponse = await fetch("http://localhost:7773/api/courses", {
             method: "POST",
             headers: {
@@ -221,7 +226,8 @@ function TutorDashboard() {
             credentials: 'include',
             body: JSON.stringify({
                 courseName: courseName,
-                description: courseDescription
+                description: courseDescription,
+                tutorId: tutorId  // Add tutorId to the request
             })
         });
 
@@ -230,16 +236,19 @@ function TutorDashboard() {
         }
 
         const courseData = await courseResponse.json();
-        console.log("Created course:", courseData);
+        console.log("Course created:", courseData);
 
+        // Clear form and close modal
         setIsModalOpen(false);
         setCourseName("");
         setCourseDescription("");
         alert("Course created successfully!");
-        await fetchCourses();
+        
+        // Fetch updated courses
+        await fetchCreatedCourses();
         
     } catch (error) {
-        console.error("Error creating course:", error);
+        console.error("Error in course creation:", error);
         setError("Failed to create course. Please try again.");
     } finally {
         setLoading(false);
@@ -411,7 +420,7 @@ function TutorDashboard() {
         });
 
         if (!courseTutorResponse.ok) {
-            throw new Error("Failed to schedule course");
+            throw new Error("Failed to create course-tutor mapping");
         }
 
         const courseTutorData = await courseTutorResponse.json();
@@ -425,27 +434,63 @@ function TutorDashboard() {
             },
             credentials: 'include',
             body: JSON.stringify({
-                ctId: courseTutorData.ctid,
+                ctId: courseTutorData.ctid, // Use the ctid from the course-tutor response
                 forumName: forumName
             })
         });
 
         if (!forumResponse.ok) {
+            // If forum creation fails, we should ideally rollback the course-tutor entry
             throw new Error("Failed to create forum");
         }
 
-        alert("Course scheduled and forum created successfully!");
+        // Both operations successful
+        alert("Course scheduled successfully with forum!");
         setIsScheduleModalOpen(false);
         setSelectedCourseId('');
         setStartDate('');
         setForumName('');
         setError('');
         
+        // Refresh the courses list
+        await fetchMyCourses();
+
     } catch (error) {
-        console.error("Error scheduling course:", error);
+        console.error("Error in course scheduling:", error);
         setError("Failed to schedule course. Please try again.");
     }
   };
+
+  // Update fetchCreatedCourses to only get courses created by the current tutor
+  const fetchCreatedCourses = async () => {
+    if (!tutorId) return;
+    
+    try {
+        const response = await fetch(`http://localhost:7773/api/courses/tutor/${tutorId}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setCourses(data);
+    } catch (error) {
+        console.error("Error fetching created courses:", error);
+    }
+  };
+
+  // Update useEffect to use the new fetch function
+  useEffect(() => {
+    if (tutorId) {
+        fetchCreatedCourses();
+    }
+  }, [tutorId]);
 
   return (
     <div className="container">
@@ -501,14 +546,15 @@ function TutorDashboard() {
             ) : error ? (
                 <p className="error">{error}</p>
             ) : courses.length > 0 ? (
-                courses.map(course => (
+                courses.map((course) => (
                     <CourseCard 
                         key={course.id} 
-                        course={course}
+                        course={course} 
+                        onView={(courseId) => navigate(`/course/${courseId}`)}
                     />
                 ))
             ) : (
-                <p className="noCourses">No courses available.</p>
+                <p className="noCourses">You haven't created any courses yet.</p>
             )}
           </div>
         </div>
@@ -592,12 +638,15 @@ function TutorDashboard() {
                           onChange={(e) => setSelectedCourseId(e.target.value)}
                       >
                           <option value="">Select a Course</option>
-                          {myCourses.map(course => (
+                          {courses.map(course => (
                               <option key={course.id} value={course.id}>
                                   {course.courseName}
                               </option>
                           ))}
                       </select>
+                      {courses.length === 0 && (
+                          <p className="noCoursesMessage">No courses available. Create a course first.</p>
+                      )}
                       <input 
                           type="date"
                           className="modalInput"
@@ -615,7 +664,10 @@ function TutorDashboard() {
                   </div>
                   {error && <p className="error">{error}</p>}
                   <div className="modalButtons">
-                      <button onClick={handleScheduleCourse}>
+                      <button 
+                          onClick={handleScheduleCourse}
+                          disabled={courses.length === 0}
+                      >
                           Schedule Course
                       </button>
                       <button onClick={() => {
