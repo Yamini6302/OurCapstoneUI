@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Lottie from "react-lottie";
-import "./css/StudentDetails.css"; // Reusing CSS from StudentDetails for styling consistency
-import animationData from "./animations/login.json"; // Importing Lottie animation
+import "./css/LoginPage.css";
+import animationData from "./animations/login.json";
 
 function LoginPage() {
   const [username, setUsername] = useState("");
@@ -41,9 +41,9 @@ function LoginPage() {
   
           // Redirect based on role
           if (role === "Student") {
-            navigate("/student-dashboard");
+            navigate("/student");
           } else if (role === "Tutor") {
-            navigate("/tutor-dashboard");
+            navigate("/tutor");
           }
         } else {
           setErrorMessage("Unable to fetch user ID.");
@@ -51,11 +51,11 @@ function LoginPage() {
       } else {
         // Handle invalid login response
         const errorData = await loginResponse.json();
-        setErrorMessage(errorData.message || "Invalid username, password, or role.");
+        setErrorMessage(errorData.message || "Invalid email, password, or role.");
       }
     } catch (error) {
       console.error("Error during login:", error);
-      setErrorMessage("An error occurred. Please try again later.");
+      setErrorMessage("Invalid email, password, or role.");
     }
   };
   
@@ -66,18 +66,18 @@ function LoginPage() {
   };
 
   return (
-    <div className="register-container">
-      <div className="logo-container">
-        <img src="src/logo.png" alt="App Logo" className="app-logo" />
+    <div className="login-page">
+      <div className="login-logo-container">
+        <img src="/logo.png" alt="App Logo" className="login-logo" />
       </div>
 
-      <div className="form-container">
-        <h4 className="form-heading">Login To Quick Learn</h4>
+      <div className="login-form-container">
+        <h4 className="login-heading">Login To Quick Learn</h4>
 
-        {errorMessage && <div className="error-message">{errorMessage}</div>}
+        {errorMessage && <div className="login-error-message">{errorMessage}</div>}
 
-        <form onSubmit={handleLogin}>
-          <div className="input-container">
+        <form onSubmit={handleLogin} className="login-form">
+          <div className="login-input-container">
             <input
               type="email"
               id="username"
@@ -90,7 +90,7 @@ function LoginPage() {
             <label htmlFor="username">Email</label>
           </div>
 
-          <div className="input-container">
+          <div className="login-input-container">
             <input
               type="password"
               id="password"
@@ -103,7 +103,7 @@ function LoginPage() {
             <label htmlFor="password">Password</label>
           </div>
 
-          <div className="input-container">
+          <div className="login-input-container select-container">
             <select
               id="role"
               name="role"
@@ -118,22 +118,22 @@ function LoginPage() {
             <label htmlFor="role">Role</label>
           </div>
 
-          <button type="submit" className="next-btn">
+          <button type="submit" className="login-btn login-btn-success">
             Login
           </button>
         </form>
 
-        <div className="mt-3">
+        <div className="login-mt-3">
           <p>
             Don't have an account?{" "}
-            <a href="/register" className="btn btn-link">
+            <a href="/register" className="login-btn-link">
               Register here
             </a>
           </p>
         </div>
       </div>
 
-      <div className="image-container">
+      <div className="login-image-container">
         <Lottie options={lottieOptions} height={400} width={400} />
       </div>
     </div>
