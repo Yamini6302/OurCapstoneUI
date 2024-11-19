@@ -143,13 +143,19 @@
     display: flex;
     align-items: center;
     position: absolute;
-    top: 20px; /* Adjust to position logo vertically */
-    left: 20px; /* Adjust to position logo horizontally */
+    top: 20px;
+    left: 20px;
     z-index: 10;
-  }
-  
-  .app-logo {
-    width: 85px; /* Adjust logo size */
+}
+
+.app-logo {
+    width: 35px;
     height: auto;
     margin-right: 10px;
-  }
+}
+
+.app-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+}
