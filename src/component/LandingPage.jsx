@@ -13,8 +13,7 @@ const LandingPage = () => {
         if (!response.ok) {
           throw new Error("Failed to fetch courses from the backend");
         }
-        const data = await response.json();
-        console.log("Fetched courses:", data);
+        const data = await response.json();        
         setCourses(data);
       } catch (error) {
         console.error("Error fetching courses:", error);
@@ -30,7 +29,6 @@ const LandingPage = () => {
   const handleCourseClick = () => {
     const userId = sessionStorage.getItem("userId");
     if (!userId) {
-      console.log("User not logged in, redirecting to login page");
       window.location.href = "/login";
     } else {
       console.log("Course clicked by user:", userId);
@@ -39,100 +37,102 @@ const LandingPage = () => {
 
   return (
     <div className="landing-page">
-      {/* Header Section - Updated */}
-      <header className="header">
-        <div className="headerLeft">
+      {/* Header Section */}
+      <header className="header" key="header">
+        <div className="headerLeft" key="header-left">
           <img src="/logo.png" alt="QuickLearn Logo" className="logo" />
           <div className="platformName">
-            <span className="quick">Quick</span>
-            <span className="learn">Learn</span>
+            <span className="quick" key="quick">Quick</span>
+            <span className="learn" key="learn">Learn</span>
           </div>
         </div>
-        <div className="cta-buttons">
-          <button className="btn primary" onClick={() => window.location.href = '/register'}>
+        <div className="cta-buttons" key="cta-buttons">
+          <button className="btn primary" key="signup-btn" onClick={() => window.location.href = '/register'}>
             Sign Up
           </button>
-          <button className="btn secondary" onClick={() => window.location.href = '/login'}>
+          <button className="btn secondary" key="signin-btn" onClick={() => window.location.href = '/login'}>
             Sign In
           </button>
         </div>
       </header>
 
-      {/* Hero Section - Updated */}
-      <section className="hero">
-        <div className="hero-text">
+      {/* Hero Section */}
+      <section className="hero" key="hero">
+        <div className="hero-text" key="hero-text">
           <h1>Unlock Your Learning Potential</h1>
           <p>Explore courses, connect with tutors, and grow your skills.</p>
-          <div className="hero-buttons">
-{/*             <button className="btn primary"onClick={() => window.location.href = '#course'}>Explore Courses</button> */}
-            <button className="btn secondary" onClick={() => window.location.href = '/login'}>Get Started</button>
+          <div className="hero-buttons" key="hero-buttons">
+            <button className="btn secondary" key="get-started-btn" onClick={() => window.location.href = '/login'}>
+              Get Started
+            </button>
           </div>
         </div>
-        <div className="hero-visual">
-          <div className="circle circle-1"></div>
-          <div className="circle circle-2"></div>
-          <div className="circle circle-3"></div>
+        <div className="hero-visual" key="hero-visual">
+          <div className="circle circle-1" key="circle-1"></div>
+          <div className="circle circle-2" key="circle-2"></div>
+          <div className="circle circle-3" key="circle-3"></div>
         </div>
       </section>
 
       {/* Courses Section */}
-      <section className="courses" id="courses" >
+      <section className="courses" id="courses" key="courses-section">
         <h2>Popular Courses</h2>
         {loading ? (
-          <p>Loading courses...</p>
+          <p key="loading">Loading courses...</p>
         ) : courses.length > 0 ? (
-          <div className="course-carousel">
-            {courses.map((course) => (
+          <div className="course-carousel" key="course-carousel">
+            {courses.map((course, index) => (
               <div
                 className="course-card"
-                key={course.id}
+                key={`course-${course.ctId}-${index}`}
                 onClick={handleCourseClick}
               >
-                
                 <h3>{course.courseName}</h3>
                 <p>{course.description}</p>
-                
               </div>
             ))}
           </div>
         ) : (
-          <p>No courses available right now.</p>
+          <p key="no-courses">No courses available right now.</p>
         )}
       </section>
 
-      {/* Footer - Updated */}
-      <footer className="footer">
-        <div className="footer-content">
-          <div className="footer-section">
-            <h3>About QuickLearn</h3>
-            <p>Empowering learners worldwide with quality education and innovative learning solutions.</p>
-          </div>
-          
-          <div className="footer-section">
-            <h3>Quick Links</h3>
-            <ul>
-              <li><a href="#courses">Browse Courses</a></li>
-              <li><a href="/login">Login</a></li>
-            </ul>
-          </div>
-          
-          <div className="footer-section">
-{/*             <h3>Contact Us</h3> */}
-            <div className="social-icons">
-              <a href="#" aria-label="Facebook">
-                <i className="fab fa-facebook-f"></i>
-              </a>
-              <a href="#" aria-label="X">
-                <i className="fab fa-x-twitter"></i>
-              </a>
-              <a href="mailto:contact@quicklearn.com" aria-label="Email">
-                <i className="far fa-envelope"></i>
-              </a>
+      {/* Footer */}
+      <footer className="footer" key="footer">
+        <div className="footer-content" key="footer-content">
+          {[
+            <div className="footer-section" key="about-section">
+              <h3>About QuickLearn</h3>
+              <p>Empowering learners worldwide with quality education and innovative learning solutions.</p>
+            </div>,
+            
+            <div className="footer-section" key="links-section">
+              <h3>Quick Links</h3>
+              <ul>
+                <li key="courses-link"><a href="#courses">Browse Courses</a></li>
+                <li key="login-link"><a href="/login">Login</a></li>
+              </ul>
+            </div>,
+            
+            <div className="footer-section" key="social-section">
+              <div className="social-icons">
+                {[
+                  <a href="#" aria-label="Facebook" key="facebook">
+                    <i className="fab fa-facebook-f"></i>
+                  </a>,
+                  <a href="#" aria-label="X" key="twitter">
+                    <i className="fab fa-x-twitter"></i>
+                  </a>,
+                  <a href="mailto:contact@quicklearn.com" aria-label="Email" key="email">
+                    <i className="far fa-envelope"></i>
+                  </a>
+                ]}
+              </div>
             </div>
-          </div>
+          ]}
         </div>
         
-        <div className="footer-bottom">
+        <div className="footer-bottom" key="footer-bottom">
           <p>&copy; 2024 QuickLearn. All rights reserved.</p>
         </div>
       </footer>
