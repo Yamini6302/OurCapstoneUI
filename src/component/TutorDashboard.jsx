@@ -642,6 +642,50 @@ function TutorDashboard() {
     }
   };
 
+  // Add these handler functions at the top of your component
+  const handleOpenForum = async (ctId) => {
+    try {
+        const response = await fetch(`http://localhost:7771/api/forum/ct/${ctId}`);
+        if (!response.ok) {
+            throw new Error("Failed to fetch forum details");
+        }
+        const forumData = await response.json();
+        // Navigate to forum page
+        window.location.href = `/forum/${forumData.id}`;
+    } catch (error) {
+        console.error("Error opening forum:", error);
+        setError("Failed to open forum");
+    }
+  };
+
+  const handleDeleteForum = async (ctId) => {
+    try {
+        const confirmDelete = window.confirm("Are you sure you want to delete this forum?");
+        if (!confirmDelete) return;
+
+        const response = await fetch(`http://localhost:7771/api/forum/ct/${ctId}`, {
+            method: 'DELETE',
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to delete forum");
+        }
+
+        // Refresh the scheduled courses list
+        await handleViewScheduledCourses();
+        
+        // Show success message
+        alert("Forum deleted successfully!");
+    } catch (error) {
+        console.error("Error deleting forum:", error);
+        setError("Failed to delete forum");
+    }
+  };
+
   return (
     <div className="container">
       <header className="header">
@@ -841,18 +885,32 @@ function TutorDashboard() {
       {/* Scheduled Courses Modal */}
       {isScheduledCoursesModalOpen && (
           <div className="modalOverlay">
-              <div className="modalContent">
+              <div className="modalContent scheduledCoursesModal">
                   <h3>Scheduled Courses</h3>
                   <div className="scheduledCoursesList">
                       {scheduledCourses.length > 0 ? (
                           scheduledCourses.map((item) => (
                               <div key={item.ctid} className="scheduledCourseCard">
                                   <h4>{item.course.courseName}</h4>
-                                  <p>{item.course.description}</p>
+                                  <p>{item.course.description || "No description available"}</p>
                                   <div className="courseDetails">
                                       <span className="startDate">
                                           Starts: {new Date(item.startDate).toLocaleDateString()}
                                       </span>
+                                      <div className="cardButtons">
+                                          <button 
+                                              className="openForumButton"
+                                              onClick={() => handleOpenForum(item.ctid)}
+                                          >
+                                              Open Forum
+                                          </button>
+                                          <button 
+                                              className="deleteForumButton"
+                                              onClick={() => handleDeleteForum(item.ctid)}
+                                          >
+                                              Delete Forum
+                                          </button>
+                                      </div>
                                   </div>
                               </div>
                           ))
