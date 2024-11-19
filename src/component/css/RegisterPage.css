@@ -40,18 +40,19 @@
 }
 
 .register-logo-container {
-  position: absolute;
-  top: 2rem;
-  left: 2rem;
-  z-index: 2;
-  padding: 0.5rem;
-  height: 50px;
+    position: absolute;
+    top: 2rem;
+    left: 4rem;
+    z-index: 2;
+    padding: 0.5rem;
+    height: 50px;
 }
 
 .register-logo {
-  height: 50px;
-  width: auto;
-  object-fit: contain;
+    height: 50px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.3s ease;
 }
 
 form {

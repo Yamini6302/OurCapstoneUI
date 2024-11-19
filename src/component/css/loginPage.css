@@ -36,7 +36,7 @@ html, body {
 .login-logo-container {
   position: absolute;
   top: 2rem;
-  left: 2rem;
+  left: 4rem;
   z-index: 2;
   padding: 0.5rem;
   height: 50px;
