@@ -1,0 +1,292 @@
+/* This ensures the page layout is properly split into two vertical sections */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Container for the entire page layout */
+.login-page {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  height: 100vh;
+  width: 100vw;
+  background: #121212;
+  color: #E0E0E0;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+/* Left side: Login form container */
+.login-form-container {
+  padding: 2rem 4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  background: rgba(30, 30, 30, 0.95);
+  backdrop-filter: blur(10px);
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Logo on top right */
+.login-logo-container {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  z-index: 2;
+  padding: 0.5rem;
+  height: 50px;
+}
+
+.login-logo {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+/* Right side: Lottie animation container */
+.login-image-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(111, 91, 176, 0.1), rgba(255, 75, 140, 0.1));
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Basic styling for form fields */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+}
+
+/* Additional styles for links */
+a {
+  text-decoration: none;
+}
+
+.login-heading {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #6F5BB0, #FF4B8C);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-top: 4rem;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+.login-input-container {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.login-input-container input,
+.login-input-container select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #E0E0E0;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.login-input-container select {
+  padding-right: 30px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.login-input-container select option {
+  background: #1E1E1E;
+  color: #E0E0E0;
+}
+
+.login-input-container label {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  padding: 0 5px;
+  color: #A0A0A0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.login-input-container input:focus,
+.login-input-container select:focus {
+  border-color: #6F5BB0;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(111, 91, 176, 0.2);
+}
+
+.login-input-container input:focus ~ label,
+.login-input-container input:not(:placeholder-shown) ~ label {
+  top: -10px;
+  left: 10px;
+  font-size: 0.85rem;
+  background: rgba(30, 30, 30, 0.95);
+  padding: 0 5px;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-btn-success {
+  background: linear-gradient(135deg, #6F5BB0, #FF4B8C);
+  color: white;
+}
+
+.login-btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(111, 91, 176, 0.3);
+}
+
+.login-btn-link {
+  color: #FF4B8C;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-btn-link:hover {
+  text-decoration: underline;
+}
+
+.login-error-message {
+  padding: 12px;
+  border-radius: 8px;
+  margin: 1rem 0;
+  text-align: center;
+  background: rgba(255, 82, 82, 0.1);
+  color: #ff5252;
+  border: 1px solid rgba(255, 82, 82, 0.2);
+}
+
+.login-mt-3 {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+/* Remove general dropdown arrow */
+.login-input-container::after {
+  content: none;
+}
+
+/* Add dropdown arrow only for select container */
+.select-container::after {
+  content: '▼';
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #A0A0A0;
+  pointer-events: none;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+  .login-page {
+    grid-template-columns: 1fr;
+    position: relative;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .login-image-container {
+    display: none;
+  }
+  
+  .login-form-container {
+    padding: 4rem 2rem;
+    min-height: 100vh;
+  }
+  
+  .login-logo-container {
+    left: 2rem;
+    top: 1rem;
+  }
+
+  .login-form {
+    max-width: 100%;
+  }
+}
+
+/* Update the select container and label styles */
+.login-input-container.select-container {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.login-input-container.select-container label {
+  position: absolute;
+  top: -10px !important;  /* Force label to stay at top */
+  left: 10px !important;
+  font-size: 0.85rem;
+  background: rgba(30, 30, 30, 0.95);
+  padding: 0 5px;
+  color: #A0A0A0;
+  transform: none;  /* Remove transform to prevent positioning issues */
+}
+
+.login-input-container.select-container select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #E0E0E0;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  padding-right: 30px;
+}
+
+/* Update dropdown arrow positioning */
+.select-container::after {
+  content: '▼';
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #A0A0A0;
+  pointer-events: none;
+  font-size: 0.8rem;
+  z-index: 1;  /* Ensure arrow stays above select */
+}
