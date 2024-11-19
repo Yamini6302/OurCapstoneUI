@@ -41,10 +41,13 @@ const LandingPage = () => {
     <div className="landing-page">
       {/* Header Section - Updated */}
       <header className="header">
-        <div className="logo">QuickLearn</div>
-{/*         <nav className="nav-links">
-          <a href="#courses">Courses</a>
-        </nav> */}
+        <div className="headerLeft">
+          <img src="/logo.png" alt="QuickLearn Logo" className="logo" />
+          <div className="platformName">
+            <span className="quick">Quick</span>
+            <span className="learn">Learn</span>
+          </div>
+        </div>
         <div className="cta-buttons">
           <button className="btn primary" onClick={() => window.location.href = '/register'}>
             Sign Up
@@ -136,10 +139,6 @@ const LandingPage = () => {
     </div>
   );
 };
-
-
-
-// Then in your course card, update the style prop:
 
 
 export default LandingPage;
