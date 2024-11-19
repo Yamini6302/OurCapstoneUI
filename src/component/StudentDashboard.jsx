@@ -6,6 +6,8 @@ function StudentDashboard() {
   const [courses, setCourses] = useState([]);
   const [userDetails, setUserDetails] = useState(null);
   const [error, setError] = useState("");
+  const [enrolledCourses, setEnrolledCourses] = useState(new Set());
+  const [studentDetails, setStudentDetails] = useState(null);
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId");
 
@@ -15,8 +17,18 @@ function StudentDashboard() {
       return;
     }
 
-    const fetchCourseDetails = async () => {
+    const fetchAllData = async () => {
       try {
+        const userResponse = await fetch(`http://localhost:7778/api/student/user/${userId}`);
+        if (!userResponse.ok) throw new Error('Failed to fetch user details');
+        const userData = await userResponse.json();
+        setUserDetails(userData);
+
+        const studentResponse = await fetch(`http://localhost:7778/api/student/user/${userId}`);
+        if (!studentResponse.ok) throw new Error('Failed to fetch student details');
+        const studentData = await studentResponse.json();
+        setStudentDetails(studentData);
+
         const ctResponse = await fetch("http://localhost:7772/api/course-tutors");
         if (!ctResponse.ok) throw new Error('Failed to fetch course-tutor data');
         const courseTutorData = await ctResponse.json();
@@ -49,6 +61,13 @@ function StudentDashboard() {
                   description = courseData.description;
                 }
 
+                const forumResponse = await fetch(`http://localhost:7771/api/forum/ct/${ct.ctid}`);
+                let forumId = null;
+                if (forumResponse.ok) {
+                  const forumData = await forumResponse.json();
+                  forumId = forumData.forumId;
+                }
+
                 return {
                   ctId: ct.ctid,
                   courseId: ct.courseId,
@@ -56,10 +75,10 @@ function StudentDashboard() {
                   description: description,
                   startDate: ct.startDate,
                   tutorName: tutorName,
-                  tutorId: ct.tutorIds?.[0]
+                  tutorId: ct.tutorIds?.[0],
+                  forumId: forumId
                 };
               } catch (error) {
-                setError("Error loading course details");
                 return null;
               }
             })
@@ -70,66 +89,100 @@ function StudentDashboard() {
           .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
         setCourses(sortedCourses);
-      } catch (error) {
-        setError("Failed to load courses");
-      }
-    };
 
-    const fetchUserDetails = async () => {
-      try {
-        const response = await fetch(`http://localhost:7778/api/student/user/${userId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setUserDetails(data);
-        } else {
-          setError("Failed to fetch user details");
+        if (userData?.id) {
+          const enrollResponse = await fetch(`http://localhost:7774/api/enrollment/student/${userData.id}`);
+          if (enrollResponse.ok) {
+            const enrollments = await enrollResponse.json();
+            setEnrolledCourses(new Set(enrollments.map(e => e.ctId)));
+          }
         }
+
       } catch (error) {
-        console.error("Error fetching user details:", error);
-        setError("Error loading user details");
+        setError("Failed to load data");
+        setTimeout(() => setError(""), 3000);
       }
     };
 
-    fetchCourseDetails();
-    fetchUserDetails();
+    fetchAllData();
   }, [userId, navigate]);
 
   const handleEnroll = async (ctId) => {
     try {
-      const studentId = userDetails?.id;
-      if (!studentId) {
-        setError("User details not found");
+      const userId = sessionStorage.getItem("userId");
+      if (!userId) {
+        setError("Please login to enroll");
         return;
       }
 
-      const response = await fetch('http://localhost:7774/enrollment', {
+      const studentResponse = await fetch(`http://localhost:7778/api/student/user/${userId}`);
+      if (!studentResponse.ok) {
+        throw new Error('Failed to fetch student details');
+      }
+      const studentData = await studentResponse.json();
+      const studentId = studentData.studentId;
+
+      const enrollmentRequest = {
+        studentId: studentId,
+        ctId: ctId,
+        enrollmentDate: new Date().toISOString(),
+        status: "ENROLLED"
+      };
+
+      console.log("Enrollment Request:", enrollmentRequest);
+
+      const response = await fetch('http://localhost:7774/api/enrollment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          studentId: studentId,
-          ctId: ctId
-        })
+        body: JSON.stringify(enrollmentRequest)
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Enrollment Error:", errorText);
         throw new Error('Failed to enroll');
       }
 
       const enrollmentData = await response.json();
-      console.log("Enrollment successful:", enrollmentData);
+      console.log("Enrollment Success:", enrollmentData);
+
+      setEnrolledCourses(prev => new Set([...prev, ctId]));
       alert("Successfully enrolled in the course!");
-      
+
     } catch (error) {
-      console.error('Error enrolling:', error);
+      console.error("Error details:", error);
       setError("Failed to enroll in course");
+      setTimeout(() => setError(""), 3000);
     }
   };
 
   const handleLogout = () => {
     sessionStorage.removeItem("userId");
     navigate("/");
+  };
+
+  const handleOpenForum = (forumId) => {
+    navigate(`/forum/${forumId}`);
+  };
+
+  const fetchEnrollments = async () => {
+    try {
+      if (!studentDetails?.studentId) {
+        return;
+      }
+
+      const response = await fetch(`http://localhost:7774/api/enrollment/student/${studentDetails.studentId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch enrollments');
+      }
+
+      const enrollments = await response.json();
+      setEnrolledCourses(new Set(enrollments.map(enrollment => enrollment.ctId)));
+    } catch (error) {
+      console.error("Error fetching enrollments:", error);
+    }
   };
 
   return (
@@ -192,12 +245,21 @@ function StudentDashboard() {
                       <span className="value">{course.tutorName}</span>
                     </div>
                   </div>
-                  <button 
-                    className="enrollButton"
-                    onClick={() => handleEnroll(course.ctId)}
-                  >
-                    Enroll Now
-                  </button>
+                  {enrolledCourses.has(course.ctId) ? (
+                    <button 
+                      className="openForumButton"
+                      onClick={() => handleOpenForum(course.forumId)}
+                    >
+                      Open Forum
+                    </button>
+                  ) : (
+                    <button 
+                      className="enrollButton"
+                      onClick={() => handleEnroll(course.ctId)}
+                    >
+                      Enroll Now
+                    </button>
+                  )}
                 </div>
               ))
             ) : (
