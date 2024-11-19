@@ -8,6 +8,8 @@ function StudentDashboard() {
   const [error, setError] = useState("");
   const [enrolledCourses, setEnrolledCourses] = useState(new Set());
   const [studentDetails, setStudentDetails] = useState(null);
+  const [showEnrolledModal, setShowEnrolledModal] = useState(false);
+  const [enrolledCourseDetails, setEnrolledCourseDetails] = useState([]);
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId");
 
@@ -107,6 +109,30 @@ function StudentDashboard() {
     fetchAllData();
   }, [userId, navigate]);
 
+  useEffect(() => {
+    const fetchEnrollments = async () => {
+      try {
+        if (!studentDetails?.studentId) return;
+        
+        const response = await fetch(`http://localhost:7774/api/enrollment/student/${studentDetails.studentId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch enrollments');
+        }
+        
+        const enrollments = await response.json();
+        const enrolledCtIds = new Set(enrollments.map(enrollment => enrollment.ctId));
+        setEnrolledCourses(enrolledCtIds);
+        
+      } catch (error) {
+        console.error("Error fetching enrollments:", error);
+      }
+    };
+
+    if (studentDetails) {
+      fetchEnrollments();
+    }
+  }, [studentDetails]);
+
   const handleEnroll = async (ctId) => {
     try {
       const userId = sessionStorage.getItem("userId");
@@ -185,6 +211,35 @@ function StudentDashboard() {
     }
   };
 
+  const handleEnrolledCourses = async () => {
+    try {
+      if (!studentDetails?.studentId) return;
+
+      const response = await fetch(`http://localhost:7774/api/enrollment/student/${studentDetails.studentId}`);
+      if (!response.ok) throw new Error('Failed to fetch enrollments');
+      
+      const enrollments = await response.json();
+      
+      // Get details for each enrolled course
+      const enrolledDetails = await Promise.all(
+        enrollments.map(async (enrollment) => {
+          const course = courses.find(c => c.ctId === enrollment.ctId);
+          return course ? {
+            courseName: course.courseName,
+            description: course.description,
+            forumId: course.forumId
+          } : null;
+        })
+      );
+
+      setEnrolledCourseDetails(enrolledDetails.filter(course => course !== null));
+      setShowEnrolledModal(true);
+    } catch (error) {
+      console.error('Error fetching enrolled courses:', error);
+      setError('Failed to load enrolled courses');
+    }
+  };
+
   return (
     <div className="container">
       <header className="header">
@@ -215,7 +270,7 @@ function StudentDashboard() {
               </div>
             </div>
           )}
-          <button className="sidebarButton" onClick={() => navigate("/enrolled-courses")}>
+          <button className="sidebarButton" onClick={handleEnrolledCourses}>
             Courses Enrolled
           </button>
         </div>
@@ -268,6 +323,32 @@ function StudentDashboard() {
           </div>
         </div>
       </div>
+
+      {showEnrolledModal && (
+        <div className="modal-overlay" onClick={() => setShowEnrolledModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Enrolled Courses</h2>
+              <button className="modal-close" onClick={() => setShowEnrolledModal(false)}>×</button>
+            </div>
+            {enrolledCourseDetails.map((course, index) => (
+              <div key={index} className="enrolled-course-card">
+                <h3>{course.courseName}</h3>
+                <p>{course.description}</p>
+                <button 
+                  className="openForumButton"
+                  onClick={() => handleOpenForum(course.forumId)}
+                >
+                  Open Forum
+                </button>
+              </div>
+            ))}
+            {enrolledCourseDetails.length === 0 && (
+              <p>No enrolled courses found.</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
