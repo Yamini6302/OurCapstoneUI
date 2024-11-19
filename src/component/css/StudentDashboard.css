@@ -204,8 +204,7 @@
   }
   
   .courseList {
-    max-height: 400px;
-    overflow-y: auto;
+    max-height: 400px;  
   }
   
   .courseCard {
@@ -313,5 +312,23 @@
     text-align: center;
     padding: 10px;
     margin: 10px 0;
+  }
+  
+  .openForumButton {
+    background: linear-gradient(135deg, #37cf3e, #07520b);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-top: auto;
+  }
+  
+  .openForumButton:hover {
+    background: linear-gradient(135deg, #2ab02f, #063d09);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   }
   
