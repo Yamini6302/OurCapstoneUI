@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Lottie from "react-lottie";
-import "./css/StudentDetails.css"; // Reusing CSS for consistency
+import "./css/RegisterPage.css";
 import animationData from "./animations/login.json"; // Lottie animation
 
 function RegisterPage() {
@@ -10,6 +10,7 @@ function RegisterPage() {
   const [role, setRole] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [usernameError, setUsernameError] = useState(""); // Track username-specific errors
+  const [successMessage, setSuccessMessage] = useState(""); // State for success message
   const navigate = useNavigate();
 
   // Handle register logic
@@ -27,36 +28,48 @@ function RegisterPage() {
 
       if (response.ok) {
         const data = await response.json();
-        setErrorMessage("Registration successful. Please log in.");
+        setSuccessMessage("Registration successful!"); // Set success message
+        
+        // Store userId in session storage
+        sessionStorage.setItem("userId", data.userId);
 
-        // Redirect to login page
-        setTimeout(() => navigate("/login"), 2000); // After 2 seconds, navigate to login page
+        // Clear any previous error messages
+        setErrorMessage("");
+        setUsernameError("");
+
+        // Redirect based on role after 1 second
+        setTimeout(() => {
+          if (role === "Student") {
+            navigate("/student-details");
+          } else if (role === "Tutor") {
+            navigate("/tutor-details");
+          }
+        }, 1000);
       } else {
         const errorText = await response.text();
         console.error("Error response:", errorText);
 
         let errorData = {};
-
         try {
-          errorData = JSON.parse(errorText);  // Attempt to parse error message as JSON
+          errorData = JSON.parse(errorText);
         } catch (error) {
-          errorData.message = errorText;  // Fallback to raw error text
+          errorData.message = errorText;
         }
 
         const errorMessage = errorData.message || "Error during registration.";
 
         if (errorMessage.includes("Username already exists")) {
           setUsernameError("This email is already registered. Please choose another one.");
-          setErrorMessage(""); // Clear general error message
+          setErrorMessage("");
         } else {
           setErrorMessage(errorMessage);
-          setUsernameError(""); // Reset username error if it's another issue
+          setUsernameError("");
         }
       }
     } catch (error) {
       console.error("Error during registration:", error);
       setErrorMessage("An error occurred. Please try again later.");
-      setUsernameError("");  // Reset username error if there's a network error
+      setUsernameError("");
     }
   };
 
@@ -68,19 +81,15 @@ function RegisterPage() {
   };
 
   return (
-    <div className="register-container">
-      {/* Logo and App Name */}
-      <div className="logo-container">
-        <img src="/logo.png" alt="App Logo" className="app-logo" />
+    <div className="register-page">
+      <div className="register-logo-container">
+        <img src="/logo.png" alt="App Logo" className="register-logo" />
       </div>
 
-      {/* Error message display */}
-      {errorMessage && <div className="error-message">{errorMessage}</div>}
-
-      <div className="form-container">
-        <h4 className="form-heading">Register for Quick Learn</h4>
+      <div className="register-form-container">
+        <h4 className="register-heading">Register for Quick Learn</h4>
         <form onSubmit={handleRegister}>
-          <div className="input-container">
+          <div className="register-input-container">
             <input
               type="email"
               id="username"
@@ -91,11 +100,10 @@ function RegisterPage() {
               placeholder=" "
             />
             <label htmlFor="username">Email</label>
-            {/* Display username-specific error message if it exists */}
-            {usernameError && <div className="input-error">{usernameError}</div>}
+            {usernameError && <div className="register-error-message">{usernameError}</div>}
           </div>
 
-          <div className="input-container">
+          <div className="register-input-container">
             <input
               type="password"
               id="password"
@@ -108,7 +116,7 @@ function RegisterPage() {
             <label htmlFor="password">Password</label>
           </div>
 
-          <div className="input-container">
+          <div className="register-input-container select-container">
             <select
               id="role"
               name="role"
@@ -123,22 +131,25 @@ function RegisterPage() {
             <label htmlFor="role">Role</label>
           </div>
 
-          <button type="submit" className="next-btn">
-            Register
+          <button type="submit" className="register-btn register-btn-success">
+            Next
           </button>
         </form>
+
+        {successMessage && <div className="register-success-message">{successMessage}</div>}
+        {errorMessage && <div className="register-error-message">{errorMessage}</div>}
 
         <div className="mt-3">
           <p>
             Already have an account?{" "}
-            <a href="/login" className="btn btn-link">
+            <a href="/login" className="register-btn-link">
               Login here
             </a>
           </p>
         </div>
       </div>
 
-      <div className="image-container">
+      <div className="register-image-container">
         <Lottie options={lottieOptions} height={400} width={400} />
       </div>
     </div>
