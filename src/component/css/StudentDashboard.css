@@ -318,17 +318,199 @@
     background: linear-gradient(135deg, #37cf3e, #07520b);
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 8px 20px;
     border-radius: 20px;
     cursor: pointer;
     font-weight: 600;
+    font-size: 0.9rem;
     transition: all 0.3s ease;
-    margin-top: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: fit-content;
   }
   
   .openForumButton:hover {
     background: linear-gradient(135deg, #2ab02f, #063d09);
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .courseCard .openForumButton {
+    align-self: flex-start;
+    margin-top: auto;
+  }
+  
+  .enrolled-course-card .openForumButton {
+    align-self: flex-start;
+    margin-top: auto;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    width: 80%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    border: double 4px transparent;
+    background-image: linear-gradient(white, white), 
+                      linear-gradient(135deg, #180161, #fb773c);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.4s ease;
+    margin: 20px;
+  }
+  
+  .modal-content::after {
+    content: '';
+    display: block;
+    height: 20px;
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  
+  .modal-header h2 {
+    color: #180161;
+    font-size: 1.8rem;
+    margin: 0;
+    background: linear-gradient(135deg, #180161, #fb773c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .modal-close:hover {
+    background: rgba(251, 119, 60, 0.1);
+    color: #fb773c;
+    transform: rotate(90deg);
+  }
+  
+  .enrolled-course-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 40px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid #f0f0f0;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 350px;
+    gap: 20px;
+  }
+  
+  .enrolled-course-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(135deg, #180161, #fb773c);
+  }
+  
+  .enrolled-course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+  
+  .enrolled-course-card h3 {
+    color: #180161;
+    margin: 0;
+    font-size: 1.5rem;
+    padding-bottom: 15px;
+  }
+  
+  .enrolled-course-card p {
+    color: #666;
+    margin: 0;
+    line-height: 1.6;
+    flex-grow: 1;
+    font-size: 1.1rem;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  
+  /* Add animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideIn {
+    from {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  /* Custom scrollbar for modal content */
+  .modal-content::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .modal-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  .modal-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #180161, #fb773c);
+    border-radius: 4px;
+  }
+  
+  .modal-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #fb773c, #180161);
   }
   
