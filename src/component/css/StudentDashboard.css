@@ -240,3 +240,78 @@
     }
   }
   
+  .coursesContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  .courseCard {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .courseCard h3 {
+    color: #333;
+    margin: 0;
+    font-size: 1.2rem;
+  }
+  
+  .courseDescription {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+  
+  .courseDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .detailRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .label {
+    color: #666;
+    font-weight: 500;
+  }
+  
+  .value {
+    color: #333;
+  }
+  
+  .enrollButton {
+    background: linear-gradient(135deg, #180161, #290944);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-top: auto;
+  }
+  
+  .enrollButton:hover {
+    background: linear-gradient(135deg, #37cf3e, #07520b);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .error {
+    color: #dc3545;
+    text-align: center;
+    padding: 10px;
+    margin: 10px 0;
+  }
+  
