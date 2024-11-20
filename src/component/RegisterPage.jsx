@@ -13,9 +13,34 @@ function RegisterPage() {
   const [successMessage, setSuccessMessage] = useState(""); // State for success message
   const navigate = useNavigate();
 
+  // Add email validation function
+  const validateEmail = async (email) => {
+    try {
+      const response = await fetch(`http://localhost:7779/api/auth/user-id/${email}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (response.ok) {
+        return true; // Email exists
+      }
+      return false; // Email does not exist
+    } catch (error) {
+      console.error("Error checking email:", error);
+      return false;
+    }
+  };
+
   // Handle register logic
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    // Check if email already exists
+    const emailExists = await validateEmail(username);
+    if (emailExists) {
+      setUsernameError("Invalid email. This email is already registered.");
+      return;
+    }
 
     const requestBody = { username, password, role };
 
@@ -73,6 +98,20 @@ function RegisterPage() {
     }
   };
 
+  // Add email validation on input change
+  const handleEmailChange = (e) => {
+    const email = e.target.value;
+    setUsername(email);
+    
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setUsernameError("Please enter a valid email address");
+    } else {
+      setUsernameError("");
+    }
+  };
+
   // Lottie animation options for registration
   const lottieOptions = {
     loop: true,
@@ -95,7 +134,7 @@ function RegisterPage() {
               id="username"
               name="username"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={handleEmailChange}
               required
               placeholder=" "
             />
@@ -116,19 +155,20 @@ function RegisterPage() {
             <label htmlFor="password">Password</label>
           </div>
 
-          <div className="register-input-container select-container">
+          <div className="select-container">
+            <label htmlFor="role">Role</label>
             <select
               id="role"
               name="role"
               value={role}
               onChange={(e) => setRole(e.target.value)}
               required
+              style={{ backgroundColor: '#121212', color: '#E0E0E0' }}
             >
-              <option value="">Select a role</option>
-              <option value="Student">Student</option>
-              <option value="Tutor">Tutor</option>
+              <option value="" style={{ backgroundColor: '#121212', color: '#E0E0E0' }}>Select a role</option>
+              <option value="Student" style={{ backgroundColor: '#121212', color: '#E0E0E0' }}>Student</option>
+              <option value="Tutor" style={{ backgroundColor: '#121212', color: '#E0E0E0' }}>Tutor</option>
             </select>
-            <label htmlFor="role">Role</label>
           </div>
 
           <button type="submit" className="register-btn register-btn-success">
