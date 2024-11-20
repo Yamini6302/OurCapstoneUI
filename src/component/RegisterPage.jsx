@@ -121,8 +121,15 @@ function RegisterPage() {
 
   return (
     <div className="register-page">
-      <div className="register-logo-container">
-        <img src="/logo.png" alt="App Logo" className="register-logo" />
+      <div className="register-header">
+        <div className="register-header-content">
+          <div className="register-logo-container">
+            <img src="/logo.png" alt="App Logo" className="register-logo" />
+          </div>
+          <nav className="register-nav">
+            <a href="/home" className="register-nav-link">Home</a>
+          </nav>
+        </div>
       </div>
 
       <div className="register-form-container">
