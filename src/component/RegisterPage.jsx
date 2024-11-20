@@ -128,7 +128,7 @@ function RegisterPage() {
       <div className="register-form-container">
         <h4 className="register-heading">Register for Quick Learn</h4>
         <form onSubmit={handleRegister}>
-          <div className="register-input-container">
+          <div className="register-input-containers">
             <input
               type="email"
               id="username"
@@ -142,7 +142,7 @@ function RegisterPage() {
             {usernameError && <div className="register-error-message">{usernameError}</div>}
           </div>
 
-          <div className="register-input-container">
+          <div className="register-input-containers">
             <input
               type="password"
               id="password"
