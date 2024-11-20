@@ -10,6 +10,8 @@ function StudentDashboard() {
   const [studentDetails, setStudentDetails] = useState(null);
   const [showEnrolledModal, setShowEnrolledModal] = useState(false);
   const [enrolledCourseDetails, setEnrolledCourseDetails] = useState([]);
+  const [userRole, setUserRole] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId");
 
@@ -21,6 +23,11 @@ function StudentDashboard() {
 
     const fetchAllData = async () => {
       try {
+        const authUserResponse = await fetch(`http://localhost:7779/api/auth/user/${userId}`);
+        if (!authUserResponse.ok) throw new Error('Failed to fetch user details');
+        const authUserData = await authUserResponse.json();
+        setUserRole(authUserData.role);
+
         const userResponse = await fetch(`http://localhost:7778/api/student/user/${userId}`);
         if (!userResponse.ok) throw new Error('Failed to fetch user details');
         const userData = await userResponse.json();
@@ -101,8 +108,8 @@ function StudentDashboard() {
         }
 
       } catch (error) {
+        console.error("Error:", error);
         setError("Failed to load data");
-        setTimeout(() => setError(""), 3000);
       }
     };
 
@@ -240,103 +247,132 @@ function StudentDashboard() {
     }
   };
 
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
   return (
-    <div className="container">
-      <header className="header">
-        <div className="headerLeft">
-          <img src="/logo.png" alt="Logo" className="logo" />
-          <span className="platformName">
-            <span className="quick">Quick</span> 
-            <span className="quick">Learn</span> 
+    <div className="student-dash-container">
+      <header className="student-dash-header">
+        <div className="student-dash-header-left">
+          <img src="/logo.png" alt="Logo" className="student-dash-logo" />
+          <span className="student-dash-platform-name">
+            <span className="student-dash-quick">Quick</span> 
+            <span className="student-dash-learn">Learn</span> 
           </span>
         </div>
-        <div className="headerCenter">
-          <input type="text" placeholder="Search..." className="searchBar" />
+        <div className="student-dash-header-center">
+          <input 
+            type="text" 
+            placeholder="Search courses..." 
+            className="student-dash-search-bar"
+            value={searchTerm}
+            onChange={handleSearch}
+          />
         </div>
-        <div className="headerRight">
-          <button className="button" onClick={handleLogout}>Logout</button>
+        <div className="student-dash-header-right">
+          <button className="student-dash-button" onClick={handleLogout}>Logout</button>
         </div>
       </header>
 
-      <div className="mainContent">
-        <div className="sidebar">
+      <div className="student-dash-main-content">
+        <div className="student-dash-sidebar">
           {userDetails && (
-            <div className="userSection">
-              <div className="avatar">
+            <div className="student-dash-user-section">
+              <div className="student-dash-avatar">
                 {userDetails.studentName ? userDetails.studentName.charAt(0).toUpperCase() : "?"}
               </div>
-              <div className="studentName">
+              <div className="student-dash-student-name">
                 <strong>{userDetails.studentName}</strong>
+              </div>
+              <div className="student-dash-user-role">
+                {userRole || 'Student'}
               </div>
             </div>
           )}
-          <button className="sidebarButton" onClick={handleEnrolledCourses}>
+          <button className="student-dash-sidebar-button" onClick={handleEnrolledCourses}>
             Courses Enrolled
           </button>
         </div>
 
-        <div className="rightColumn">
+        <div className="student-dash-right-column">
           {userDetails && (
-            <div className="welcomeCard">
+            <div className="student-dash-welcome-card">
               <h2>👋 Hello, {userDetails.studentName}!</h2>
             </div>
           )}
-          <div className="courseList">
-            {error && <div className="error">{error}</div>}
-            {courses.length > 0 ? (
-              courses.map((course) => (
-                <div key={course.ctId} className="courseCard">
+          
+          <div className="student-dash-section-divider">
+            <h2 className="student-dash-section-title">Upcoming Courses</h2>
+          </div>
+
+          <div className="student-dash-course-list">
+            {error && <div className="student-dash-error">{error}</div>}
+            {courses
+              .filter(course => 
+                course.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                course.tutorName.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+              .map((course) => (
+                <div key={course.ctId} className="student-dash-course-card">
                   <h3>{course.courseName}</h3>
-                  <p className="courseDescription">{course.description}</p>
-                  <div className="courseDetails">
-                    <div className="detailRow">
-                      <span className="label">Start Date:</span>
-                      <span className="value">
+                  <p className="student-dash-course-description">{course.description}</p>
+                  <div className="student-dash-course-details">
+                    <div className="student-dash-detail-row">
+                      <span className="student-dash-label">Start Date:</span>
+                      <span className="student-dash-value">
                         {new Date(course.startDate).toLocaleDateString()}
                       </span>
                     </div>
-                    <div className="detailRow">
-                      <span className="label">Tutor:</span>
-                      <span className="value">{course.tutorName}</span>
+                    <div className="student-dash-detail-row">
+                      <span className="student-dash-label">Tutor:</span>
+                      <span className="student-dash-value">{course.tutorName}</span>
                     </div>
                   </div>
                   {enrolledCourses.has(course.ctId) ? (
                     <button 
-                      className="openForumButton"
+                      className="student-dash-open-forum-button"
                       onClick={() => handleOpenForum(course.forumId)}
                     >
                       Open Forum
                     </button>
                   ) : (
                     <button 
-                      className="enrollButton"
+                      className="student-dash-enroll-button"
                       onClick={() => handleEnroll(course.ctId)}
                     >
                       Enroll Now
                     </button>
                   )}
                 </div>
-              ))
-            ) : (
-              <p>No courses available.</p>
+              ))}
+            {courses.filter(course => 
+              course.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              course.tutorName.toLowerCase().includes(searchTerm.toLowerCase())
+            ).length === 0 && (
+              <div className="student-dash-no-results">
+                <p>No courses found matching your search.</p>
+              </div>
             )}
           </div>
         </div>
       </div>
 
       {showEnrolledModal && (
-        <div className="modal-overlay" onClick={() => setShowEnrolledModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="student-dash-modal-overlay" onClick={() => setShowEnrolledModal(false)}>
+          <div className="student-dash-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="student-dash-modal-header">
               <h2>Enrolled Courses</h2>
-              <button className="modal-close" onClick={() => setShowEnrolledModal(false)}>×</button>
+              <button className="student-dash-modal-close" onClick={() => setShowEnrolledModal(false)}>×</button>
             </div>
             {enrolledCourseDetails.map((course, index) => (
-              <div key={index} className="enrolled-course-card">
+              <div key={index} className="student-dash-enrolled-course-card">
                 <h3>{course.courseName}</h3>
                 <p>{course.description}</p>
                 <button 
-                  className="openForumButton"
+                  className="student-dash-open-forum-button"
                   onClick={() => handleOpenForum(course.forumId)}
                 >
                   Open Forum
