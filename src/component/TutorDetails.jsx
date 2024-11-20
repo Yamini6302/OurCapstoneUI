@@ -59,21 +59,16 @@ function TutorDetails() {
   };
 
   return (
-    <div className="register-container">
-       {/* Logo and App Name Section */}
-       <div className="logo-container">
-        <img
-          src="src/assets/logo (1).png" // Replace with your logo path
-          alt="App Logo"
-          className="app-logo"
-        />
-        </div>
-      <div className="form-container">
-        <h3 className="form-heading">Welcome, Mentor!<br/> Let's Build Your Profile</h3>
-     
+    <div className="tutor-details-page">
+      <div className="tutor-details-logo-container">
+        <img src="/logo.png" alt="Logo" className="tutor-details-logo" />
+      </div>
 
+      <div className="tutor-details-form-container">
+        <h4 className="tutor-details-heading">Complete Your Tutor Profile</h4>
+        
         <form onSubmit={handleNext}>
-          <div className="input-container">
+          <div className="tutor-details-input-container">
             <input
               type="text"
               id="tutorName"
@@ -86,7 +81,7 @@ function TutorDetails() {
             <label htmlFor="tutorName">Tutor Name</label>
           </div>
 
-          <div className="input-container">
+          <div className="tutor-details-input-container">
             <textarea
               id="details"
               name="details"
@@ -98,22 +93,24 @@ function TutorDetails() {
             <label htmlFor="details">Details</label>
           </div>
 
-          <button type="submit" className="next-btn" disabled={isSubmitting}>
+          <button type="submit" className="tutor-details-btn" disabled={isSubmitting}>
             {isSubmitting ? "Submitting..." : "Next"}
           </button>
         </form>
       </div>
 
-      <div className="image-container">
-        <Lottie
-          options={{
-            loop: true,
-            autoplay: true,
-            path: "https://lottie.host/e35ec040-4458-4998-abe4-6bef6095409e/s55gBLhCYN.json",
-          }}
-          height={400}
-          width={400}
-        />
+      <div className="tutor-details-image-container">
+        <div className="tutor-details-animation-wrapper">
+          <Lottie
+            options={{
+              loop: true,
+              autoplay: true,
+              path: "https://lottie.host/e35ec040-4458-4998-abe4-6bef6095409e/s55gBLhCYN.json",
+            }}
+            height={400}
+            width={400}
+          />
+        </div>
       </div>
     </div>
   );
