@@ -364,23 +364,28 @@ function StudentDashboard() {
         <div className="student-dash-modal-overlay" onClick={() => setShowEnrolledModal(false)}>
           <div className="student-dash-modal-content" onClick={e => e.stopPropagation()}>
             <div className="student-dash-modal-header">
-              <h2>Enrolled Courses</h2>
-              <button className="student-dash-modal-close" onClick={() => setShowEnrolledModal(false)}>×</button>
+              <h2>Your Enrolled Courses</h2>
+              <button className="student-dash-modal-close" onClick={() => setShowEnrolledModal(false)}>
+                ×
+              </button>
             </div>
-            {enrolledCourseDetails.map((course, index) => (
-              <div key={index} className="student-dash-enrolled-course-card">
-                <h3>{course.courseName}</h3>
-                <p>{course.description}</p>
-                <button 
-                  className="student-dash-open-forum-button"
-                  onClick={() => handleOpenForum(course.forumId)}
-                >
-                  Open Forum
-                </button>
+            {enrolledCourseDetails.length > 0 ? (
+              enrolledCourseDetails.map((course, index) => (
+                <div key={index} className="student-dash-enrolled-course-card">
+                  <h3>{course.courseName}</h3>
+                  <p>{course.description}</p>
+                  <button 
+                    className="student-dash-open-forum-button"
+                    onClick={() => handleOpenForum(course.forumId)}
+                  >
+                    Open Forum
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className="student-dash-no-courses">
+                <p>You haven't enrolled in any courses yet.</p>
               </div>
-            ))}
-            {enrolledCourseDetails.length === 0 && (
-              <p>No enrolled courses found.</p>
             )}
           </div>
         </div>
