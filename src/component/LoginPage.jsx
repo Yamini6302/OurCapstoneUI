@@ -67,8 +67,15 @@ function LoginPage() {
 
   return (
     <div className="login-page">
-      <div className="login-logo-container">
-        <img src="/logo.png" alt="App Logo" className="login-logo" />
+      <div className="login-top-header">
+        <div className="login-top-header-content">
+          <div className="login-top-logo-container">
+            <img src="/logo.png" alt="App Logo" className="login-top-logo" />
+          </div>
+          <nav className="login-top-nav">
+            <a href="/home" className="login-top-nav-link">Home</a>
+          </nav>
+        </div>
       </div>
 
       <div className="login-form-container">
