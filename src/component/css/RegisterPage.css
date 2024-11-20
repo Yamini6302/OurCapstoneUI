@@ -5,6 +5,46 @@
   box-sizing: border-box;
 }
 
+.register-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 1rem 4rem;
+  background: rgba(30, 30, 30, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+}
+
+.register-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.register-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  margin-left: -50px;
+}
+
+.register-nav-link {
+  color: #f55592;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+  padding: 0.5rem 1rem;
+}
+
+.register-nav-link:hover {
+  color: #950eca;
+}
+
 .register-page {
   display: grid;
   grid-template-columns: 1fr 1.2fr;
@@ -28,6 +68,7 @@
   backdrop-filter: blur(10px);
   height: 100%;
   overflow-y: auto;
+  padding-top: 6rem;
 }
 
 .register-image-container {
@@ -40,19 +81,19 @@
 }
 
 .register-logo-container {
-    position: absolute;
-    top: 2rem;
-    left: 4rem;
-    z-index: 2;
-    padding: 0.5rem;
-    height: 50px;
+  position: relative;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  padding: 0.5rem;
+  height: 50px;
 }
 
 .register-logo {
-    height: 50px;
-    width: auto;
-    object-fit: contain;
-    transition: transform 0.3s ease;
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
 }
 
 form {
@@ -79,8 +120,7 @@ form {
   }
   
   .register-logo-container {
-    left: 2rem;
-    top: 1rem;
+    display: none;
   }
 
   form {
