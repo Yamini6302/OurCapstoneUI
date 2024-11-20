@@ -1,4 +1,4 @@
-/* This ensures the page layout is properly split into two vertical sections */
+This ensures the page layout is properly split into two vertical sections
 html, body {
   height: 100%;
   margin: 0;
@@ -29,7 +29,7 @@ html, body {
   background: rgba(30, 30, 30, 0.95);
   backdrop-filter: blur(10px);
   height: 100%;
-  overflow-y: auto;
+  
 }
 
 /* Logo on top right */
@@ -289,4 +289,82 @@ a {
   pointer-events: none;
   font-size: 0.8rem;
   z-index: 1;  /* Ensure arrow stays above select */
+}
+
+/* Add these new styles for the header */
+.login-top-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 1rem 4rem;
+  background: rgba(30, 30, 30, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+}
+
+.login-top-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.login-top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  margin-left: -50px;
+}
+
+.login-top-nav-link {
+  color: #f55592;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+  padding: 0.5rem 1rem;
+}
+
+.login-top-nav-link:hover {
+  color: #950eca;
+}
+
+.login-top-logo-container {
+  position: relative;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  padding: 0.5rem;
+  height: 50px;
+}
+
+.login-top-logo {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+/* Update form container padding to account for header */
+.login-form-container {
+  padding-top: 6rem;
+}
+
+/* Update media query */
+@media (max-width: 768px) {
+  .login-top-header {
+    width: 100%;
+    padding: 1rem 2rem;
+  }
+  
+  .login-top-header-content {
+    justify-content: center;
+  }
+  
+  .login-top-logo-container {
+    display: none;
+  }
 }
