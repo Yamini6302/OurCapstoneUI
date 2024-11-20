@@ -50,10 +50,16 @@ function StudentDashboard() {
             .filter(ct => {
               const startDate = new Date(ct.startDate);
               startDate.setHours(0, 0, 0, 0);
+              if (!ct.ctid) {
+                console.warn('Course-tutor missing ctid:', ct);
+                return false;
+              }
               return startDate >= currentDate;
             })
             .map(async (ct) => {
               try {
+                console.log('Processing course-tutor:', ct);
+
                 const tutorResponse = await fetch(`http://localhost:7777/api/tutor/${ct.tutorIds[0]}`);
                 let tutorName = "Unknown Tutor";
                 if (tutorResponse.ok) {
@@ -70,11 +76,17 @@ function StudentDashboard() {
                   description = courseData.description;
                 }
 
-                const forumResponse = await fetch(`http://localhost:7771/api/forum/ct/${ct.ctid}`);
                 let forumId = null;
-                if (forumResponse.ok) {
-                  const forumData = await forumResponse.json();
-                  forumId = forumData.forumId;
+                try {
+                  const forumResponse = await fetch(`http://localhost:7771/api/forum/ct/${ct.ctid}`);
+                  if (forumResponse.ok) {
+                    const forumData = await forumResponse.json();
+                    forumId = forumData.forumId;
+                  } else if (forumResponse.status === 404) {
+                    console.debug(`No forum found for course ${ct.ctid} (This is normal for new courses)`);
+                  }
+                } catch (error) {
+                  console.debug(`Unable to fetch forum for course ${ct.ctid}`);
                 }
 
                 return {
@@ -88,14 +100,17 @@ function StudentDashboard() {
                   forumId: forumId
                 };
               } catch (error) {
+                console.error('Error processing course:', error, ct);
                 return null;
               }
             })
         );
 
+        console.log('Detailed courses before filtering:', detailedCourses);
         const sortedCourses = detailedCourses
           .filter(course => course !== null)
           .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+        console.log('Sorted courses:', sortedCourses);
 
         setCourses(sortedCourses);
 
