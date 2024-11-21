@@ -5,9 +5,9 @@ import './css/TutorDashboard.css';  // Import the CSS file
 // Add this component before the TutorDashboard function
 const CourseCard = ({ course }) => {
     return (
-        <div className="courseCard" key={course.courseId}>
-            <h3>{course.courseName}</h3>
-            <p>{course.description}</p>
+        <div className="tutor-dash-course-card" key={course.courseId}>
+            <h3 className="tutor-dash-course-title">{course.courseName}</h3>
+            <p className="tutor-dash-course-description">{course.description}</p>
         </div>
     );
 };
@@ -32,6 +32,7 @@ function TutorDashboard() {
   const [forumName, setForumName] = useState('');
   const [isScheduledCoursesModalOpen, setIsScheduledCoursesModalOpen] = useState(false);
   const [scheduledCourses, setScheduledCourses] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId");
@@ -686,73 +687,91 @@ function TutorDashboard() {
     }
   };
 
+  // Filter courses based on search term
+  const filteredCourses = courses.filter((course) =>
+    course.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    course.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="container">
-      <header className="header">
-      <div className="headerLeft">
-        <img src="/logo.png" alt="Logo" className="logo" />
-        <span className="platformName">
-          <span className="quick">Quick</span> 
-          <span className="quick">Learn</span> 
-        </span>
-      </div>
-        <div className="headerCenter">
-          <input type="text" placeholder="Search..." className="searchBar" />
+    <div className="tutor-dash-container">
+      <header className="tutor-dash-header">
+        <div className="tutor-dash-header-left">
+          <img src="/logo.png" alt="Logo" className="tutor-dash-logo" />
+          <div className="tutor-dash-platform-name">
+            <span className="tutor-dash-quick">Quick</span>
+            <span className="tutor-dash-learn">Learn</span>
+          </div>
         </div>
-        <div className="headerRight">
-          <button className="button" onClick={handleLogout}>Logout</button>
+        <div className="tutor-dash-header-right">
+          <input
+            type="text"
+            className="tutor-dash-search-bar"
+            placeholder="Search courses..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <button className="tutor-dash-button" onClick={handleLogout}>
+            Logout
+          </button>
         </div>
       </header>
 
-      <div className="mainContent">
-        <div className="sidebar">
-          <div className="userSection">
-            <div className="avatar">
-              {userDetails?.initial || 'U'}
+      <div className="tutor-dash-main-content">
+        <aside className="tutor-dash-sidebar">
+            <div className="tutor-dash-user-section">
+                <div className="tutor-dash-avatar">
+                    {userDetails?.tutorName?.charAt(0).toUpperCase() || "?"}
+                </div>
+                <div className="tutor-dash-tutor-name">
+                    {userDetails?.tutorName || "Tutor"}
+                </div>
+                <div className="tutor-dash-user-role">
+                    Tutor
+                </div>
             </div>
-            <div className="userInfo">
-              <div className="tutorName">
-                <strong>{userDetails?.fullName || 'User'}</strong>
-              </div>
-              <div className="tutorRole">
-                Tutor
-              </div>
+            <div className="tutor-dash-sidebar-menu">
+                <button className="tutor-dash-sidebar-button" onClick={() => setIsModalOpen(true)}>
+                    Create Course
+                </button>
+                <button className="tutor-dash-sidebar-button" onClick={() => setIsScheduleModalOpen(true)}>
+                    Schedule Course
+                </button>
+                <button className="tutor-dash-sidebar-button" onClick={handleViewScheduledCourses}>
+                    View Scheduled Courses
+                </button>
             </div>
-          </div>
-          <div className="sidebarButtons">
-            <button className="sidebarButton" onClick={() => setIsModalOpen(true)}>
-                Create Course
-            </button>
-            <button className="sidebarButton" onClick={() => setIsScheduleModalOpen(true)}>
-                Schedule Course
-            </button>
-            <button className="sidebarButton" onClick={handleViewScheduledCourses}>
-                View Scheduled Courses
-            </button>
-          </div>
-        </div>
+        </aside>
 
-        <div className="rightColumn">
+        <div className="tutor-dash-right-column">
           {userDetails && (
-            <div className="welcomeCard">
+            <div className="tutor-dash-welcome-card">
               <h2>👋 Hello, {userDetails.tutorName}!</h2>
+              <p className="tutor-dash-welcome-subtitle"></p>
+              <div className="tutor-dash-welcome-divider"></div>
+              <div className="tutor-dash-welcome-stats">
+                {/* <div className="tutor-dash-stat-item">
+                  <span className="tutor-dash-stat-number">{courses.length}</span>
+                  <span className="tutor-dash-stat-label"> Total Courses</span>
+                </div>
+                <div className="tutor-dash-stat-item">
+                  <span className="tutor-dash-stat-number">{scheduledCourses.length}</span>
+                  <span className="tutor-dash-stat-label"> Scheduled Classes</span>
+                </div> */}
+              </div>
             </div>
           )}
-          <h2 className="sectionTitle">My Courses</h2>
-          <div className="courseList">
-            {loading ? (
-                <p className="loading">Loading your courses...</p>
-            ) : error ? (
-                <p className="error">{error}</p>
-            ) : courses && courses.length > 0 ? (
-                courses.map((course) => (
-                    <CourseCard 
-                        key={course.courseId} 
-                        course={course}
-                    />
-                ))
+          
+          <h2 className="tutor-dash-section-title">My Courses</h2>
+          <div className="tutor-dash-course-list">
+            {filteredCourses.length > 0 ? (
+              filteredCourses.map((course) => (
+                <CourseCard key={course.courseId} course={course} />
+              ))
             ) : (
-                <p className="noCourses">You haven't created any courses yet.</p>
+              <div className="tutor-dash-no-results">
+                <p>No courses found matching "{searchTerm}"</p>
+              </div>
             )}
           </div>
         </div>
@@ -760,21 +779,21 @@ function TutorDashboard() {
 
       {/* My Courses Modal */}
       {isMyCoursesModalOpen && (
-    <div className="modalOverlay">
-        <div className="modalContent">
+    <div className="tutor-dash-modal-overlay">
+        <div className="tutor-dash-modal-content">
             <h3>My Courses</h3>
-            <div className="myCoursesList">
+            <div className="tutor-dash-my-courses-list">
                 {loading ? (
-                    <p className="loading">Loading your courses...</p>
+                    <p className="tutor-dash-loading">Loading your courses...</p>
                 ) : error ? (
-                    <p className="error">{error}</p>
+                    <p className="tutor-dash-error">{error}</p>
                 ) : myCourses.length > 0 ? (
                     myCourses.map((course) => (
-                        <div key={course.id} className="myCourseCard">
+                        <div key={course.id} className="tutor-dash-my-course-card">
                             <h4>{course.courseName}</h4>
                             <p>{course.description}</p>
                             <button 
-                                className="viewButton" 
+                                className="tutor-dash-view-button" 
                                 onClick={() => { 
                                     setIsMyCoursesModalOpen(false); 
                                     navigate(`/course/${course.id}`); 
@@ -785,10 +804,10 @@ function TutorDashboard() {
                         </div>
                     ))
                 ) : (
-                    <p className="noCourses">You haven't joined any courses yet.</p>
+                    <p className="tutor-dash-no-courses">You haven't joined any courses yet.</p>
                 )}
             </div>
-            <div className="modalButtons">
+            <div className="tutor-dash-modal-buttons">
                 <button onClick={() => setIsMyCoursesModalOpen(false)}>Close</button>
             </div>
         </div>
@@ -797,41 +816,50 @@ function TutorDashboard() {
 
       {/* Modal for course creation */}
       {isModalOpen && (
-        <div className="modalOverlay">
-          <div className="modalContent">
-            <h3>Create a New Course</h3>
-            <input
-              type="text"
-              placeholder="Course Name"
-              value={courseName}
-              onChange={(e) => setCourseName(e.target.value)}
-              className="modalInput"
-            />
-            <textarea
-              placeholder="Course Description"
-              value={courseDescription}
-              onChange={(e) => setCourseDescription(e.target.value)}
-              className="modalInput"
-            />
-            {error && <p className="error">{error}</p>}
-            <div className="modalButtons">
-              <button onClick={handleCreateCourse} disabled={loading}>
-                {loading ? "Creating..." : "Create"}
-              </button>
-              <button onClick={() => setIsModalOpen(false)}>Cancel</button>
+        <div className="tutor-dash-modal-overlay">
+            <div className="tutor-dash-modal-content">
+                <h2 className="tutor-dash-modal-title">Create New Course</h2>
+                <input
+                    type="text"
+                    className="tutor-dash-modal-input"
+                    placeholder="Course Name"
+                    value={courseName}
+                    onChange={(e) => setCourseName(e.target.value)}
+                />
+                <textarea
+                    className="tutor-dash-modal-textarea"
+                    placeholder="Course Description"
+                    value={courseDescription}
+                    onChange={(e) => setCourseDescription(e.target.value)}
+                />
+                {error && <div className="tutor-dash-error-message">{error}</div>}
+                <div className="tutor-dash-modal-buttons">
+                    <button 
+                        className="tutor-dash-modal-button tutor-dash-modal-button-secondary"
+                        onClick={() => setIsModalOpen(false)}
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        className="tutor-dash-modal-button tutor-dash-modal-button-primary"
+                        onClick={handleCreateCourse}
+                        disabled={loading}
+                    >
+                        {loading ? "Creating..." : "Create Course"}
+                    </button>
+                </div>
             </div>
-          </div>
         </div>
       )}
       
       {/* Schedule Course Modal */}
       {isScheduleModalOpen && (
-          <div className="modalOverlay">
-              <div className="modalContent">
+          <div className="tutor-dash-modal-overlay">
+              <div className="tutor-dash-modal-content">
                   <h3>Schedule Course</h3>
-                  <div className="modalInputGroup">
+                  <div className="tutor-dash-modal-input-group">
                       <select 
-                          className="modalInput"
+                          className="tutor-dash-modal-input"
                           value={selectedCourseId}
                           onChange={(e) => setSelectedCourseId(e.target.value)}
                       >
@@ -843,25 +871,25 @@ function TutorDashboard() {
                           ))}
                       </select>
                       {(!courses || courses.length === 0) && (
-                          <p className="noCoursesMessage">No courses available. Create a course first.</p>
+                          <p className="tutor-dash-no-courses-message">No courses available. Create a course first.</p>
                       )}
                       <input 
                           type="date"
-                          className="modalInput"
+                          className="tutor-dash-modal-input"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
                           min={new Date().toISOString().split('T')[0]}
                       />
                       <input
                           type="text"
-                          className="modalInput"
+                          className="tutor-dash-modal-input"
                           placeholder="Forum Name"
                           value={forumName}
                           onChange={(e) => setForumName(e.target.value)}
                       />
                   </div>
-                  {error && <p className="error">{error}</p>}
-                  <div className="modalButtons">
+                  {error && <p className="tutor-dash-error">{error}</p>}
+                  <div className="tutor-dash-modal-buttons">
                       <button 
                           onClick={handleScheduleCourse}
                           disabled={courses.length === 0}
@@ -884,28 +912,28 @@ function TutorDashboard() {
 
       {/* Scheduled Courses Modal */}
       {isScheduledCoursesModalOpen && (
-          <div className="modalOverlay">
-              <div className="modalContent scheduledCoursesModal">
+          <div className="tutor-dash-modal-overlay">
+              <div className="tutor-dash-modal-content tutor-dash-scheduled-courses-modal">
                   <h3>Scheduled Courses</h3>
-                  <div className="scheduledCoursesList">
+                  <div className="tutor-dash-scheduled-courses-list">
                       {scheduledCourses.length > 0 ? (
                           scheduledCourses.map((item) => (
-                              <div key={item.ctid} className="scheduledCourseCard">
+                              <div key={item.ctid} className="tutor-dash-scheduled-course-card">
                                   <h4>{item.course.courseName}</h4>
                                   <p>{item.course.description || "No description available"}</p>
-                                  <div className="courseDetails">
-                                      <span className="startDate">
+                                  <div className="tutor-dash-course-details">
+                                      <span className="tutor-dash-start-date">
                                           Starts: {new Date(item.startDate).toLocaleDateString()}
                                       </span>
-                                      <div className="cardButtons">
+                                      <div className="tutor-dash-card-buttons">
                                           <button 
-                                              className="openForumButton"
+                                              className="tutor-dash-open-forum-button"
                                               onClick={() => handleOpenForum(item.ctid)}
                                           >
                                               Open Forum
                                           </button>
                                           <button 
-                                              className="deleteForumButton"
+                                              className="tutor-dash-delete-forum-button"
                                               onClick={() => handleDeleteForum(item.ctid)}
                                           >
                                               Delete Forum
@@ -915,12 +943,12 @@ function TutorDashboard() {
                               </div>
                           ))
                       ) : (
-                          <p className="noCoursesMessage">No scheduled courses found</p>
+                          <p className="tutor-dash-no-courses-message">No scheduled courses found</p>
                       )}
                   </div>
-                  <div className="modalButtons">
+                  <div className="tutor-dash-modal-buttons">
                       <button 
-                          className="closeButton"
+                          className="tutor-dash-close-button"
                           onClick={() => setIsScheduledCoursesModalOpen(false)}
                       >
                           Close
