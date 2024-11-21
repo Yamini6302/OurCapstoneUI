@@ -67,7 +67,6 @@
   background: rgba(30, 30, 30, 0.95);
   backdrop-filter: blur(10px);
   height: 100%;
-  overflow-y: auto;
   padding-top: 6rem;
 }
 
