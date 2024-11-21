@@ -16,6 +16,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import "./Forum.css";
 import NoteForm from "./NoteForm";
 import CircularProgress from "@mui/material/CircularProgress";
+import { Document, Page, pdfjs } from 'react-pdf';
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 
@@ -51,6 +53,12 @@ const ForumPage = () => {
   const [studentSubmissions, setStudentSubmissions] = useState({});
   const [showStudentSubmissions, setShowStudentSubmissions] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [studentNames, setStudentNames] = useState({});
+  const [gradeInput, setGradeInput] = useState('');
+  const [gradingSubmissionId, setGradingSubmissionId] = useState(null);
+  const [viewingPdf, setViewingPdf] = useState(null);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [numPages, setNumPages] = useState(null);
 
   const handleLogout = () => {
     sessionStorage.removeItem("userId");
@@ -421,26 +429,14 @@ const ForumPage = () => {
     }
   };
 
-  const fetchStudentUsername = async (studentId) => {
-    try {
-      const response = await fetch(`http://localhost:7779/api/auth/user/${studentId}`);
-      if (response.ok) {
-        const userData = await response.json();
-        return userData.username;
-      }
-      return "Unknown";
-    } catch (error) {
-      console.error("Error fetching student username:", error);
-      return "Unknown";
-    }
-  };
+  
 
   const fetchStudentDetails = async (studentId) => {
     try {
-      const response = await fetch(`http://localhost:7770/api/students/${studentId}`);
+      const response = await fetch(`http://localhost:7778/api/student/${studentId}`);
       if (response.ok) {
         const studentData = await response.json();
-        return `${studentData.firstName} ${studentData.lastName}`; // Using first and last name
+        return `${studentData.studenName}`; 
       }
       return "Unknown Student";
     } catch (error) {
@@ -458,79 +454,245 @@ const ForumPage = () => {
       if (response.ok) {
         const submissions = await response.json();
         
-        // Fetch student details for all submissions
-        const submissionsWithStudentDetails = await Promise.all(
+        // Fetch student details for each submission
+        const submissionsWithDetails = await Promise.all(
           submissions.map(async (submission) => {
-            const studentName = await fetchStudentDetails(submission.studentId);
-            return {
-              ...submission,
-              studentName
-            };
+            try {
+              const studentResponse = await fetch(
+                `http://localhost:7778/api/student/${submission.studentId}`
+              );
+              const studentData = await studentResponse.json();
+              
+              return {
+                ...submission,
+                studentName: studentData.studentName || 'Unknown Student'
+              };
+            } catch (error) {
+              console.error('Error fetching student details:', error);
+              return {
+                ...submission,
+                studentName: 'Unknown Student'
+              };
+            }
           })
         );
         
         setSelectedAssignmentSubmissions({
-          assignmentTitle: assignment.title,
-          submissions: submissionsWithStudentDetails
+          assignmentTitle: assignment.name || 'Untitled Assignment',
+          submissions: submissionsWithDetails
         });
         setShowSubmissions(true);
       } else {
-        console.error('Failed to fetch submissions');
+        throw new Error('Failed to fetch submissions');
       }
     } catch (error) {
       console.error('Error fetching submissions:', error);
+      alert('Error loading submissions');
     }
   };
 
-  const SubmissionsModal = ({ onClose, data }) => {
-    if (!data) return null;
+  const fetchStudentName = async (studentId) => {
+    try {
+      if (response.ok) {
+        const student = await response.json();
+        setStudentNames(prev => ({
+          ...prev,
+          [studentId]: student.studentName
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching student name:', error);
+      return 'Unknown Student';
+    }
+  };
 
-    const formatDate = (dateString) => {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    };
+  const handleGradeSubmission = async (submissionId, grade) => {
+    try {
+      const response = await fetch(
+        `http://localhost:7770/api/submissions/${submissionId}/grade`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ grade: parseFloat(grade) })
+        }
+      );
+
+      if (response.ok) {
+        // Update the submission in the local state
+        const updatedSubmissions = selectedAssignmentSubmissions.submissions.map(sub =>
+          sub._id === submissionId ? { ...sub, grade: parseFloat(grade) } : sub
+        );
+        setSelectedAssignmentSubmissions({
+          ...selectedAssignmentSubmissions,
+          submissions: updatedSubmissions
+        });
+        setGradingSubmissionId(null);
+        setGradeInput('');
+      } else {
+        throw new Error('Failed to update grade');
+      }
+    } catch (error) {
+      console.error("Error updating grade:", error);
+      alert("Failed to update grade");
+    }
+  };
+
+  const onDocumentLoadSuccess = ({ numPages }) => {
+    setNumPages(numPages);
+    setPageNumber(1);
+  };
+
+  const handleViewSubmission = async (submissionId) => {
+    console.log("Viewing submission ID:", submissionId);
+    try {
+      const response = await fetch(
+        `http://localhost:7770/api/submissions/${submissionId}/file`,
+        {
+          method: 'GET',
+        }
+      );
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const pdfUrl = URL.createObjectURL(blob);
+        setViewingPdf(pdfUrl);
+      } else {
+        throw new Error('Failed to fetch PDF file');
+      }
+    } catch (error) {
+      console.error("Error viewing submission:", error);
+      alert("Error loading submission file");
+    }
+  };
+
+  const SubmissionsModal = ({ data, onClose }) => {
+    if (!data) return null;
 
     return (
       <div className="modal-overlay">
         <div className="submissions-modal">
           <div className="modal-header">
-            <h2>Submissions for {data.assignmentTitle}</h2>
+            <h2>Submissions for: {data.assignmentTitle}</h2>
             <button className="close-button" onClick={onClose}>×</button>
           </div>
           <div className="submissions-list">
             {data.submissions && data.submissions.length > 0 ? (
               data.submissions.map((submission) => (
-                <div key={submission.id} className="submission-item">
+                <div key={submission._id} className="submission-item">
                   <div className="submission-info">
-                    <div className="submission-details">
-                      <span className="student-name">
-                        {submission.studentName}
-                      </span>
-                      <span className="submission-date">
-                        Submitted: {formatDate(submission.submissionDate)}
-                      </span>
+                    <h3>{submission.studentName}</h3>
+                    <p>Submitted: {new Date(submission.submissionDate).toLocaleDateString()}</p>
+                    <div className="submission-actions">
+                      {/* View PDF button */}
+                      <button
+                        className="view-button"
+                        onClick={() => handleViewSubmission(submission._id)}
+                      >
+                        <VisibilityIcon /> View Submission
+                      </button>
+
+                      {/* Download button */}
+                      <button
+                        className="download-button"
+                        onClick={() => handleDownloadSubmission(submission._id)}
+                      >
+                        <DownloadIcon /> Download
+                      </button>
+                      
+                      {/* Grading section */}
+                      <div className="grade-section">
+                        {gradingSubmissionId === submission._id ? (
+                          <div className="grade-input-group">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={gradeInput}
+                              onChange={(e) => setGradeInput(e.target.value)}
+                              placeholder="Enter grade"
+                              className="grade-input"
+                            />
+                            <button 
+                              className="submit-grade-btn"
+                              onClick={() => handleGradeSubmission(submission._id, gradeInput)}
+                              disabled={!gradeInput}
+                            >
+                              Submit
+                            </button>
+                            <button 
+                              className="cancel-grade-btn"
+                              onClick={() => {
+                                setGradingSubmissionId(null);
+                                setGradeInput('');
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button 
+                            className="grade-button"
+                            onClick={() => {
+                              setGradingSubmissionId(submission._id);
+                              setGradeInput(submission.grade?.toString() || '');
+                            }}
+                          >
+                            {submission.grade !== undefined ? (
+                              <span className="grade-value">Grade: {submission.grade}%</span>
+                            ) : (
+                              <>
+                                <EditIcon /> Grade
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="submission-actions">
-                    <button 
-                      className="download-button"
-                      onClick={() => handleDownloadSubmission(submission.submissionId)}
-                    >
-                      <DownloadIcon /> Download
-                    </button>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="no-submissions">
-                No submissions yet for this assignment
-              </div>
+              <p className="no-submissions">No submissions yet</p>
             )}
           </div>
         </div>
+
+        {/* PDF Viewer Modal */}
+        {viewingPdf && (
+          <div className="pdf-viewer-modal">
+            <div className="pdf-viewer-header">
+              <div className="page-navigation">
+                <button 
+                  onClick={() => setPageNumber(prev => Math.max(prev - 1, 1))}
+                  disabled={pageNumber <= 1}
+                >
+                  Previous
+                </button>
+                <span>
+                  Page {pageNumber} of {numPages}
+                </span>
+                <button 
+                  onClick={() => setPageNumber(prev => Math.min(prev + 1, numPages))}
+                  disabled={pageNumber >= numPages}
+                >
+                  Next
+                </button>
+              </div>
+              <button className="close-button" onClick={() => setViewingPdf(null)}>×</button>
+            </div>
+            <div className="pdf-container">
+              <Document
+                file={viewingPdf}
+                onLoadSuccess={onDocumentLoadSuccess}
+                loading={<div className="pdf-loading">Loading PDF...</div>}
+              >
+                <Page pageNumber={pageNumber} />
+              </Document>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -608,7 +770,7 @@ const ForumPage = () => {
                     >
                       <VisibilityIcon fontSize="small" /> View Submissions
                     </button>
-                    {submissionsDropdownOpen && (
+                    {submissionsDropdownOpen && assignments.length > 0 && (
                       <div className="submissions-dropdown">
                         {assignments.map((assignment) => (
                           <div
@@ -632,7 +794,8 @@ const ForumPage = () => {
                   className="view-submissions-button"
                   onClick={() => setShowStudentSubmissions(true)}
                 >
-                  <VisibilityIcon fontSize="small" /> View My Submissions
+                  <VisibilityIcon fontSize="small" />
+                  View My Submissions
                 </button>
               )}
             </div>
@@ -990,12 +1153,21 @@ const ForumPage = () => {
                     {submission ? (
                       <>
                         <p>Submitted: {formatDate(submission.submissionDate)}</p>
-                        <button 
-                          className="download-button"
-                          onClick={() => handleDownloadSubmission(submission.submissionId)}
-                        >
-                          <DownloadIcon /> Download Submission
-                        </button>
+                        <div className="submission-details">
+                          <button 
+                            className="download-button"
+                            onClick={() => handleDownloadSubmission(submission.submissionId)}
+                          >
+                            <DownloadIcon /> Download Submission
+                          </button>
+                          <div className="grade-display">
+                            {submission.grade !== undefined ? (
+                              <span className="grade">Grade: {submission.grade}%</span>
+                            ) : (
+                              <span className="pending">Grade Pending</span>
+                            )}
+                          </div>
+                        </div>
                       </>
                     ) : (
                       <p>No submission yet</p>
