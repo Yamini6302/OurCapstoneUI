@@ -14,6 +14,7 @@ function StudentDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId");
+  const [activeTab, setActiveTab] = useState('upcomingCourses');
 
   useEffect(() => {
     if (!userId) {
@@ -305,106 +306,91 @@ function StudentDashboard() {
               </div>
             </div>
           )}
-          <button className="student-dash-sidebar-button" onClick={handleEnrolledCourses}>
-            Courses Enrolled
-          </button>
         </div>
 
         <div className="student-dash-right-column">
           {userDetails && (
             <div className="student-dash-welcome-card">
               <h2>👋 Hello, {userDetails.studentName}!</h2>
+              <p>Explore many exciting courses here.</p>
             </div>
           )}
           
-          <div className="student-dash-section-divider">
-            <h2 className="student-dash-section-title">Upcoming Courses</h2>
+          <div className="student-dash-divider"></div>
+
+          <div className="student-dash-nav-tabs">
+            <button 
+              className={`student-dash-nav-tab ${activeTab === 'upcomingCourses' ? 'active' : ''}`}
+              onClick={() => setActiveTab('upcomingCourses')}
+            >
+              Upcoming Courses
+            </button>
+            <button 
+              className={`student-dash-nav-tab ${activeTab === 'enrolledCourses' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('enrolledCourses');
+                handleEnrolledCourses();
+              }}
+            >
+              Enrolled Courses
+            </button>
           </div>
 
-          <div className="student-dash-course-list">
-            {error && <div className="student-dash-error">{error}</div>}
-            {courses
-              .filter(course => 
-                course.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                course.tutorName.toLowerCase().includes(searchTerm.toLowerCase())
-              )
-              .map((course) => (
-                <div key={course.ctId} className="student-dash-course-card">
-                  <h3>{course.courseName}</h3>
-                  <p className="student-dash-course-description">{course.description}</p>
-                  <div className="student-dash-course-details">
-                    <div className="student-dash-detail-row">
-                      <span className="student-dash-label">Start Date:</span>
-                      <span className="student-dash-value">
-                        {new Date(course.startDate).toLocaleDateString()}
-                      </span>
+          <div className="student-dash-tab-content">
+            {activeTab === 'upcomingCourses' ? (
+              <div className="student-dash-course-list">
+                {courses
+                  .filter(course => 
+                    !enrolledCourses.has(course.ctId) &&
+                    (course.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    course.tutorName.toLowerCase().includes(searchTerm.toLowerCase()))
+                  )
+                  .map((course) => (
+                    <div key={course.ctId} className="student-dash-course-card">
+                      <h3>{course.courseName}</h3>
+                      <p className="student-dash-course-description">{course.description}</p>
+                      <div className="student-dash-course-details">
+                        <div className="student-dash-detail-row">
+                          <span className="student-dash-label">Start Date:</span>
+                          <span className="student-dash-value">
+                            {new Date(course.startDate).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="student-dash-detail-row">
+                          <span className="student-dash-label">Tutor:</span>
+                          <span className="student-dash-value">{course.tutorName}</span>
+                        </div>
+                      </div>
+                      <button 
+                        className="student-dash-enroll-button"
+                        onClick={() => handleEnroll(course.ctId)}
+                      >
+                        Enroll Now
+                      </button>
                     </div>
-                    <div className="student-dash-detail-row">
-                      <span className="student-dash-label">Tutor:</span>
-                      <span className="student-dash-value">{course.tutorName}</span>
-                    </div>
-                  </div>
-                  {enrolledCourses.has(course.ctId) ? (
+                  ))
+                }
+              </div>
+            ) : (
+              <div className="student-dash-course-list">
+                {enrolledCourseDetails.map((course, index) => (
+                  <div key={index} className="student-dash-course-card">
+                    <h3>{course.courseName}</h3>
+                    <p className="student-dash-course-description">{course.description}</p>
                     <button 
                       className="student-dash-open-forum-button"
                       onClick={() => handleOpenForum(course.forumId)}
                     >
                       Open Forum
                     </button>
-                  ) : (
-                    <button 
-                      className="student-dash-enroll-button"
-                      onClick={() => handleEnroll(course.ctId)}
-                    >
-                      Enroll Now
-                    </button>
-                  )}
-                </div>
-              ))}
-            {courses.filter(course => 
-              course.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              course.tutorName.toLowerCase().includes(searchTerm.toLowerCase())
-            ).length === 0 && (
-              <div className="student-dash-no-results">
-                <p>No courses found matching your search.</p>
+                  </div>
+                ))}
               </div>
             )}
           </div>
         </div>
       </div>
-
-      {showEnrolledModal && (
-        <div className="student-dash-modal-overlay" onClick={() => setShowEnrolledModal(false)}>
-          <div className="student-dash-modal-content" onClick={e => e.stopPropagation()}>
-            <div className="student-dash-modal-header">
-              <h2>Your Enrolled Courses</h2>
-              <button className="student-dash-modal-close" onClick={() => setShowEnrolledModal(false)}>
-                ×
-              </button>
-            </div>
-            {enrolledCourseDetails.length > 0 ? (
-              enrolledCourseDetails.map((course, index) => (
-                <div key={index} className="student-dash-enrolled-course-card">
-                  <h3>{course.courseName}</h3>
-                  <p>{course.description}</p>
-                  <button 
-                    className="student-dash-open-forum-button"
-                    onClick={() => handleOpenForum(course.forumId)}
-                  >
-                    Open Forum
-                  </button>
-                </div>
-              ))
-            ) : (
-              <div className="student-dash-no-courses">
-                <p>You haven't enrolled in any courses yet.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
