@@ -652,16 +652,34 @@ function TutorDashboard() {
   // Add these handler functions at the top of your component
   const handleOpenForum = async (ctId) => {
     try {
-        const response = await fetch(`http://localhost:7771/api/forum/ct/${ctId}`);
+        // First, fetch the forum details using the ctId
+        const response = await fetch(`http://localhost:7771/api/forum/ct/${ctId}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'include'
+        });
+
         if (!response.ok) {
             throw new Error("Failed to fetch forum details");
         }
+
         const forumData = await response.json();
-        // Navigate to forum page
-        window.location.href = `/forum/${forumData.id}`;
+        
+        // Check if we got valid forum data
+        if (!forumData || !forumData.forumId) {
+            console.error("Invalid forum data received:", forumData);
+            alert("Forum not found");
+            return;
+        }
+
+        // Navigate to the forum page with the correct ID
+        navigate(`/forum/${forumData.forumId}`);
     } catch (error) {
         console.error("Error opening forum:", error);
-        setError("Failed to open forum");
+        alert("Failed to open forum: " + error.message);
     }
   };
 
