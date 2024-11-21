@@ -33,6 +33,7 @@ function TutorDashboard() {
   const [isScheduledCoursesModalOpen, setIsScheduledCoursesModalOpen] = useState(false);
   const [scheduledCourses, setScheduledCourses] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState('myCourses'); // 'myCourses' or 'scheduledCourses'
 
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId");
@@ -567,37 +568,12 @@ function TutorDashboard() {
     }
 
     try {
-        console.log("Fetching scheduled courses for tutorId:", tutorId);
-        
-        // Fetch course-tutor mappings
-        const courseTutorUrl = `http://localhost:7772/api/course-tutors/tutor/${tutorId}`;
-        console.log("Fetching from URL:", courseTutorUrl);
-        
-        const courseTutorResponse = await fetch(courseTutorUrl, {
-            method: "GET",
-            headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json"
-            }
-        });
-
+        const courseTutorResponse = await fetch(`http://localhost:7772/api/course-tutors/tutor/${tutorId}`);
         if (!courseTutorResponse.ok) {
-            const errorText = await courseTutorResponse.text();
-            console.error("Course-tutor response error:", errorText);
             throw new Error(`HTTP error! status: ${courseTutorResponse.status}`);
         }
 
         const courseTutorMappings = await courseTutorResponse.json();
-        console.log("Course-tutor mappings received:", courseTutorMappings);
-
-        if (!courseTutorMappings || courseTutorMappings.length === 0) {
-            console.log("No scheduled courses found");
-            setScheduledCourses([]);
-            setIsScheduledCoursesModalOpen(true);
-            return;
-        }
-
-        // Fetch course details for each mapping
         const scheduledCoursesData = await Promise.all(
             courseTutorMappings.map(async (mapping) => {
                 try {
@@ -632,10 +608,7 @@ function TutorDashboard() {
         );
 
         const validCourses = scheduledCoursesData.filter(course => course !== null);
-        console.log("Final scheduled courses data:", validCourses);
-
         setScheduledCourses(validCourses);
-        setIsScheduledCoursesModalOpen(true);
 
     } catch (error) {
         console.error("Error in handleViewScheduledCourses:", error);
@@ -736,7 +709,7 @@ function TutorDashboard() {
       </header>
 
       <div className="tutor-dash-main-content">
-        <aside className="tutor-dash-sidebar">
+        <div className="tutor-dash-sidebar">
             <div className="tutor-dash-user-section">
                 <div className="tutor-dash-avatar">
                     {userDetails?.tutorName?.charAt(0).toUpperCase() || "?"}
@@ -755,46 +728,69 @@ function TutorDashboard() {
                 <button className="tutor-dash-sidebar-button" onClick={() => setIsScheduleModalOpen(true)}>
                     Schedule Course
                 </button>
-                <button className="tutor-dash-sidebar-button" onClick={handleViewScheduledCourses}>
+            </div>
+        </div>
+        
+        <div className="tutor-dash-content">
+            <div className="tutor-dash-welcome-card">
+                <div className="tutor-dash-welcome-header">
+                    
+                    <div className="tutor-dash-welcome-text">
+                        <h1>👋 Hello, {userDetails?.fullName}!</h1>
+                        <p>Manage your courses and schedule from here</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="tutor-dash-divider"></div>
+
+            <div className="tutor-dash-nav-tabs">
+                <button 
+                    className={`tutor-dash-nav-tab ${activeTab === 'myCourses' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('myCourses')}
+                >
+                    My Courses
+                </button>
+                <button 
+                    className={`tutor-dash-nav-tab ${activeTab === 'scheduledCourses' ? 'active' : ''}`}
+                    onClick={() => {
+                        setActiveTab('scheduledCourses');
+                        handleViewScheduledCourses();
+                    }}
+                >
                     View Scheduled Courses
                 </button>
             </div>
-        </aside>
 
-        <div className="tutor-dash-right-column">
-          {userDetails && (
-            <div className="tutor-dash-welcome-card">
-              <h2>👋 Hello, {userDetails.tutorName}!</h2>
-              <p className="tutor-dash-welcome-subtitle"></p>
-              <div className="tutor-dash-welcome-divider"></div>
-              <div className="tutor-dash-welcome-stats">
-                {/* <div className="tutor-dash-stat-item">
-                  <span className="tutor-dash-stat-number">{courses.length}</span>
-                  <span className="tutor-dash-stat-label"> Total Courses</span>
-                </div>
-                <div className="tutor-dash-stat-item">
-                  <span className="tutor-dash-stat-number">{scheduledCourses.length}</span>
-                  <span className="tutor-dash-stat-label"> Scheduled Classes</span>
-                </div> */}
-              </div>
+            <div className="tutor-dash-tab-content">
+                {activeTab === 'myCourses' ? (
+                    <div className="tutor-dash-course-grid">
+                        {filteredCourses.map((course) => (
+                            <CourseCard key={course.courseId} course={course} />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="tutor-dash-course-grid">
+                        {scheduledCourses.map((item) => (
+                            <div key={item.ctid} className="tutor-dash-scheduled-course-card">
+                                <h4>{item.course.courseName}</h4>
+                                <p>{item.course.description || "No description available"}</p>
+                                <div className="tutor-dash-course-details">
+                                    <span className="tutor-dash-start-date">
+                                        Starts: {new Date(item.startDate).toLocaleDateString()}
+                                    </span>
+                                    <button 
+                                        className="tutor-dash-open-forum-button"
+                                        onClick={() => handleOpenForum(item.ctid)}
+                                    >
+                                        Open Forum
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
-          )}
-          
-          <h2 className="tutor-dash-section-title">My Courses</h2>
-          <div className="tutor-dash-course-list">
-            {filteredCourses.length > 0 ? (
-                filteredCourses.map((course) => (
-                    <CourseCard 
-                        key={course.courseId} 
-                        course={course} 
-                    />
-                ))
-            ) : (
-                <div className="tutor-dash-no-results">
-                    <p>No courses found matching "{searchTerm}"</p>
-                </div>
-            )}
-          </div>
         </div>
       </div>
 
