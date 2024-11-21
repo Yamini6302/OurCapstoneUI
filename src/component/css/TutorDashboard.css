@@ -335,92 +335,93 @@
 /* Modal Styles */
 .tutor-dash-modal-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(5px);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1100;
-  animation: modalFadeIn 0.3s ease;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
 }
 
 .tutor-dash-modal-content {
-  background: var(--bg-card);
-  border-radius: 20px;
+  background: var(--bg-dark);
   padding: 2.5rem;
+  border-radius: 20px;
   width: 90%;
-  max-width: 600px;
-  max-height: 85vh;
-  overflow-y: auto;
+  max-width: 500px;
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-  animation: modalSlideIn 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
-/* Modal Title */
 .tutor-dash-modal-title {
-  font-size: 1.8rem;
-  font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 1.5rem;
-  background: linear-gradient(135deg, #ffffff, #a0a0a0);
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+  background: var(--gradient-primary);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Modal Input Fields */
-.tutor-dash-modal-input {
-  width: 100%;
-  padding: 1rem 1.2rem;
-  margin-bottom: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  background: var(--primary);
-  color: var(--text-primary);
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.tutor-dash-modal-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  background: var(--bg-card);
-  box-shadow: 0 0 15px rgba(255, 75, 140, 0.1);
-}
-
-/* Style the dropdown options */
-.tutor-dash-modal-input option {
-  background: var(--bg-dark);
-  color: var(--text-primary);
-  padding: 8px;
-}
-
-/* Modal Textarea */
-.tutor-dash-modal-textarea {
-  width: 100%;
-  padding: 1rem 1.2rem;
+/* Input group styling */
+.tutor-dash-input-group {
+  position: relative;
   margin-bottom: 1.5rem;
+}
+
+.tutor-dash-input-group input,
+.tutor-dash-input-group textarea,
+.tutor-dash-input-group select {
+  width: 100%;
+  padding: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-primary);
   font-size: 1rem;
-  min-height: 120px;
-  resize: vertical;
   transition: all 0.3s ease;
 }
 
-.tutor-dash-modal-textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 15px rgba(255, 75, 140, 0.1);
+.tutor-dash-input-group textarea {
+  min-height: 100px;
+  resize: vertical;
 }
 
-/* Modal Buttons Container */
+.tutor-dash-input-group label {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg-dark);
+  padding: 0 0.5rem;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.tutor-dash-input-group textarea ~ label {
+  top: 1rem;
+  transform: none;
+}
+
+/* Floating label animation */
+.tutor-dash-input-group input:focus ~ label,
+.tutor-dash-input-group textarea:focus ~ label,
+.tutor-dash-input-group select:focus ~ label,
+.tutor-dash-input-group input:not(:placeholder-shown) ~ label,
+.tutor-dash-input-group textarea:not(:placeholder-shown) ~ label,
+.tutor-dash-input-group select:not([value=""]) ~ label {
+  top: 0;
+  transform: translateY(-50%) scale(0.9);
+  color: var(--accent);
+}
+
+/* Modal buttons */
 .tutor-dash-modal-buttons {
   display: flex;
   gap: 1rem;
@@ -428,24 +429,23 @@
   justify-content: flex-end;
 }
 
-/* Modal Buttons */
 .tutor-dash-modal-button {
   padding: 0.8rem 1.5rem;
-  border-radius: 12px;
+  border-radius: 8px;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 1rem;
 }
 
 .tutor-dash-modal-button-primary {
-  background: var(--gradient-primary);
+  background: linear-gradient(135deg, var(--primary), var(--accent));
   color: white;
   border: none;
 }
 
 .tutor-dash-modal-button-secondary {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text-primary);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -455,18 +455,29 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-.tutor-dash-modal-button:active {
-  transform: translateY(0);
+.tutor-dash-modal-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 
-/* Error Message */
-.tutor-dash-error-message {
-  color: #ff4b4b;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  border-radius: 8px;
-  background: rgba(255, 75, 75, 0.1);
+/* Date input specific styling */
+.tutor-dash-input-group input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) sepia(1) saturate(5) hue-rotate(175deg);
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+/* Select dropdown styling */
+.tutor-dash-select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--primary) 50%),
+                    linear-gradient(135deg, var(--primary) 50%, transparent 50%);
+  background-position: calc(100% - 20px) calc(1em + 2px),
+                       calc(100% - 15px) calc(1em + 2px);
+  background-size: 5px 5px,
+                    5px 5px;
+  background-repeat: no-repeat;
 }
 
 /* Animations */
@@ -796,135 +807,66 @@
     transform: translateY(0);
 }
 
-/* Input group styling updates */
-.tutor-dash-input-group {
-    position: relative;
-    margin-bottom: 1.5rem;
+/* Navigation Tabs */
+.tutor-dash-nav-tabs {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.5rem;
 }
 
-.tutor-dash-input-group input,
-.tutor-dash-input-group textarea,
-.tutor-dash-input-group select {
-    width: 100%;
-    padding: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    background: var(--bg-card);
-    color: var(--text-primary);
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-/* Specific styling for date input */
-.tutor-dash-input-group input[type="date"] {
-    color: var(--primary);
-    background-color: var(--bg-card);
-    padding-right: 1rem;
-}
-
-/* Style the date picker calendar icon */
-.tutor-dash-input-group input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(1) sepia(1) saturate(5) hue-rotate(175deg);
-    opacity: 0.8;
-    cursor: pointer;
-}
-
-/* Style the select dropdown */
-.tutor-dash-input-group select {
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236F5BB0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1.2em;
-    padding-right: 2.5rem;
-    cursor: pointer;
-}
-
-.tutor-dash-input-group select option {
-    background: var(--bg-card);
-    color: var(--text-primary);
-    padding: 0.5rem;
-}
-
-/* Focus states */
-.tutor-dash-input-group input:focus,
-.tutor-dash-input-group textarea:focus,
-.tutor-dash-input-group select:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(111, 91, 176, 0.2);
-}
-
-/* Label styling */
-.tutor-dash-input-group label {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    background: var(--bg-dark);
-    padding: 0 0.5rem;
-    color: var(--text-secondary);
-    transition: all 0.3s ease;
-    pointer-events: none;
-}
-
-/* Floating label animation */
-.tutor-dash-input-group input:focus ~ label,
-.tutor-dash-input-group textarea:focus ~ label,
-.tutor-dash-input-group select:focus ~ label,
-.tutor-dash-input-group input:not(:placeholder-shown) ~ label,
-.tutor-dash-input-group textarea:not(:placeholder-shown) ~ label,
-.tutor-dash-input-group select:not([value=""]) ~ label {
-    top: 0;
-    transform: translateY(-50%) scale(0.9);
-    color: var(--primary);
-}
-
-/* Schedule modal specific styles */
-.tutor-dash-schedule-modal {
-    max-width: 500px;
-    width: 90%;
-}
-
-.tutor-dash-schedule-modal h3 {
-    color: var(--text-primary);
-    margin-bottom: 1.5rem;
-    font-size: 1.5rem;
-}
-
-/* Modal close button styling */
-.tutor-dash-modal-close-button {
-    position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    background: rgba(255, 255, 255, 0.1);
+.tutor-dash-nav-tab {
+    background: none;
     border: none;
     color: var(--text-secondary);
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 1.1rem;
+    padding: 0.5rem 1rem;
     cursor: pointer;
-    font-size: 1.2rem;
-    transition: all 0.3s ease;
-    z-index: 1000;
-}
-
-.tutor-dash-modal-close-button:hover {
-    background: rgba(255, 255, 255, 0.2);
-    color: var(--text-primary);
-    transform: scale(1.1);
-}
-
-/* Update modal content to ensure proper positioning context */
-.tutor-dash-modal-content {
     position: relative;
-    /* ... rest of your existing modal content styles ... */
+    transition: all 0.3s ease;
 }
 
-/* Remove the old close button styles if they exist */
-.tutor-dash-close-button {
-    display: none;
+.tutor-dash-nav-tab.active {
+    color: var(--text-primary);
+}
+
+.tutor-dash-nav-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+}
+
+.tutor-dash-nav-tab:hover {
+    color: var(--text-primary);
+}
+
+/* Tab Content Styling */
+.tutor-dash-tab-content {
+    width: 100%;
+}
+
+.tutor-dash-course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    width: 100%;
+}
+
+/* Update content area padding */
+.tutor-dash-content {
+    padding: 2rem;
+    margin-left: 250px; /* Width of sidebar */
+    width: calc(100% - 250px);
+}
+
+/* Update divider */
+.tutor-dash-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 2rem 0;
 }
