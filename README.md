@@ -7,5 +7,6 @@
 * npm install Lottie
 * npm install react-calendar
 * npm install react-router-dom
+* npm install @mui/material @emotion/react @emotion/styled @mui/icons-material
 
 ### https://lottiefiles.com/free-animation/student-studying-N6b6Aybob2?color-palette=true
