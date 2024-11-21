@@ -61,48 +61,39 @@ const NoteForm = ({ onClose, onSubmit, forumId }) => {
   }
 
   return (
-    <div className="note-form-overlay">
-      <div className="note-form-container">
-        <div className="note-form-header">
-          <h2>Upload Note</h2>
-          <button className="close-button" onClick={onClose}>
-            <CloseIcon />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="title">Title</label>
-            <input
-              type="text"
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter note title"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="file">File</label>
-            <input
-              type="file"
-              id="file"
-              onChange={(e) => setFile(e.target.files[0])}
-              className="file-input"
-              required
-              accept=".pdf,.doc,.docx"
-            />
-          </div>
-          {error && <div className="error-message">{error}</div>}
-          <div className="form-buttons">
-            <button type="button" className="cancel-button" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="submit-button">
-              Upload
-            </button>
-          </div>
-        </form>
+    <div className="note-form">
+      <button className="close-button" onClick={onClose}>×</button>
+      <div className="form-header">
+        <h2>Upload Note</h2>
       </div>
+      
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="title">Title</label>
+          <input
+            type="text"
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="file">File</label>
+          <input
+            type="file"
+            id="file"
+            onChange={(e) => setFile(e.target.files[0])}
+            className="file-input"
+            required
+            accept=".pdf,.doc,.docx"
+          />
+        </div>
+
+        <button type="submit" className="submit-button">
+          Upload Note
+        </button>
+      </form>
     </div>
   );
 };

@@ -17,6 +17,8 @@ import "./Forum.css";
 import NoteForm from "./NoteForm";
 import CircularProgress from "@mui/material/CircularProgress";
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+
 const ForumPage = () => {
   const navigate = useNavigate();
   const { forumId } = useParams();
@@ -41,6 +43,14 @@ const ForumPage = () => {
   const [usernames, setUsernames] = useState({});
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [deletingNoteId, setDeletingNoteId] = useState(null);
+  const [assignmentFiles, setAssignmentFiles] = useState({});
+  const [showSubmissions, setShowSubmissions] = useState(false);
+  const [selectedAssignmentSubmissions, setSelectedAssignmentSubmissions] = useState(null);
+  const [submissionsDropdownOpen, setSubmissionsDropdownOpen] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [studentSubmissions, setStudentSubmissions] = useState({});
+  const [showStudentSubmissions, setShowStudentSubmissions] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
 
   const handleLogout = () => {
     sessionStorage.removeItem("userId");
@@ -115,6 +125,33 @@ const ForumPage = () => {
     fetchForumData();
   }, [forumId]);
 
+  const checkSubmissionStatus = async (assignmentId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:7770/api/submissions/assignment/${assignmentId}`
+      );
+      
+      if (response.ok) {
+        const submissions = await response.json();
+        const userSubmission = submissions.find(sub => sub.studentId === userId);
+        return {
+          isSubmitted: !!userSubmission,
+          submissionId: userSubmission?._id
+        };
+      }
+      return {
+        isSubmitted: false,
+        submissionId: null
+      };
+    } catch (error) {
+      console.error("Error checking submission status:", error);
+      return {
+        isSubmitted: false,
+        submissionId: null
+      };
+    }
+  };
+
   const fetchAssignments = async () => {
     setLoading(true);
     try {
@@ -123,7 +160,19 @@ const ForumPage = () => {
       );
       if (response.ok) {
         const data = await response.json();
-        setAssignments(data);
+        
+        const assignmentsWithStatus = await Promise.all(
+          data.map(async (assignment) => {
+            const { isSubmitted, submissionId } = await checkSubmissionStatus(assignment.id);
+            return {
+              ...assignment,
+              isSubmitted,
+              submissionId
+            };
+          })
+        );
+        
+        setAssignments(assignmentsWithStatus);
         setError(null);
       } else {
         const errorData = await response.json();
@@ -143,35 +192,73 @@ const ForumPage = () => {
     }
   }, [forumId]);
 
+  const handleFileChange = (assignmentId, files) => {
+    const file = files[0];
+    
+    if (file) {
+      // Check file size
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
+        // Clear the input
+        const fileInput = document.getElementById(`file-upload-${assignmentId}`);
+        if (fileInput) fileInput.value = '';
+        return;
+      }
+      
+      setAssignmentFiles(prev => ({
+        ...prev,
+        [assignmentId]: file
+      }));
+    }
+  };
+
   const handleAssignmentSubmit = async (assignmentId) => {
-    if (!newAssignment) return;
+    const file = assignmentFiles[assignmentId];
+    if (!file) {
+      alert("Please select a file first");
+      return;
+    }
 
     try {
+      const userId = sessionStorage.getItem("userId");
       const formData = new FormData();
-      formData.append("file", newAssignment);
+      formData.append("file", file);
+      formData.append("assignmentId", assignmentId);
+      formData.append("studentId", userId);
 
       const response = await fetch(
-        `http://localhost:7769/api/assignments/submit/${assignmentId}`,
+        `http://localhost:7770/api/submissions/upload`,
         {
-          method: "POST",
+          method: 'POST',
           body: formData,
         }
       );
 
       if (response.ok) {
-        const updatedAssignment = await response.json();
-        setAssignments(
-          assignments.map((assignment) =>
-            assignment.id === assignmentId ? updatedAssignment : assignment
-          )
-        );
-        setNewAssignment(null);
+        // Clear the file input
+        const fileInput = document.getElementById(`file-upload-${assignmentId}`);
+        if (fileInput) fileInput.value = '';
+        
+        // Clear the file from state
+        setAssignmentFiles(prev => ({
+          ...prev,
+          [assignmentId]: null
+        }));
+        
+        // Refresh assignments to update submission status
+        await fetchAssignments();
+        
+        // Show success message
+        setSubmitSuccess(true);
+        setTimeout(() => {
+          setSubmitSuccess(false);
+        }, 1000);
       } else {
-        setErrorMessage("Failed to submit assignment.");
+        throw new Error("Failed to submit assignment");
       }
     } catch (error) {
       console.error("Error submitting assignment:", error);
-      setErrorMessage("Error submitting assignment.");
+      setErrorMessage("Error submitting assignment");
     }
   };
 
@@ -334,6 +421,120 @@ const ForumPage = () => {
     }
   };
 
+  const fetchStudentUsername = async (studentId) => {
+    try {
+      const response = await fetch(`http://localhost:7779/api/auth/user/${studentId}`);
+      if (response.ok) {
+        const userData = await response.json();
+        return userData.username;
+      }
+      return "Unknown";
+    } catch (error) {
+      console.error("Error fetching student username:", error);
+      return "Unknown";
+    }
+  };
+
+  const fetchStudentDetails = async (studentId) => {
+    try {
+      const response = await fetch(`http://localhost:7770/api/students/${studentId}`);
+      if (response.ok) {
+        const studentData = await response.json();
+        return `${studentData.firstName} ${studentData.lastName}`; // Using first and last name
+      }
+      return "Unknown Student";
+    } catch (error) {
+      console.error("Error fetching student details:", error);
+      return "Unknown Student";
+    }
+  };
+
+  const handleViewSubmissions = async (assignment) => {
+    try {
+      const response = await fetch(
+        `http://localhost:7770/api/submissions/assignment/${assignment.id}`
+      );
+      
+      if (response.ok) {
+        const submissions = await response.json();
+        
+        // Fetch student details for all submissions
+        const submissionsWithStudentDetails = await Promise.all(
+          submissions.map(async (submission) => {
+            const studentName = await fetchStudentDetails(submission.studentId);
+            return {
+              ...submission,
+              studentName
+            };
+          })
+        );
+        
+        setSelectedAssignmentSubmissions({
+          assignmentTitle: assignment.title,
+          submissions: submissionsWithStudentDetails
+        });
+        setShowSubmissions(true);
+      } else {
+        console.error('Failed to fetch submissions');
+      }
+    } catch (error) {
+      console.error('Error fetching submissions:', error);
+    }
+  };
+
+  const SubmissionsModal = ({ onClose, data }) => {
+    if (!data) return null;
+
+    const formatDate = (dateString) => {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    };
+
+    return (
+      <div className="modal-overlay">
+        <div className="submissions-modal">
+          <div className="modal-header">
+            <h2>Submissions for {data.assignmentTitle}</h2>
+            <button className="close-button" onClick={onClose}>×</button>
+          </div>
+          <div className="submissions-list">
+            {data.submissions && data.submissions.length > 0 ? (
+              data.submissions.map((submission) => (
+                <div key={submission.id} className="submission-item">
+                  <div className="submission-info">
+                    <div className="submission-details">
+                      <span className="student-name">
+                        {submission.studentName}
+                      </span>
+                      <span className="submission-date">
+                        Submitted: {formatDate(submission.submissionDate)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="submission-actions">
+                    <button 
+                      className="download-button"
+                      onClick={() => handleDownloadSubmission(submission.submissionId)}
+                    >
+                      <DownloadIcon /> Download
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="no-submissions">
+                No submissions yet for this assignment
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderChatSection = () => {
     return (
       <div className="chat-container">
@@ -348,12 +549,6 @@ const ForumPage = () => {
               >
                 <div className="message-info">
                   <span className="username">{usernames[post.userId] || "Loading..."}</span>
-                  <span className="timestamp">
-                    {new Date(post.timestamp).toLocaleTimeString([], { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
-                  </span>
                 </div>
                 <div className="message-text">{post.content}</div>
               </div>
@@ -399,52 +594,129 @@ const ForumPage = () => {
             <div className="section-header">
               <h2>Assignments</h2>
               {userRole === "tutor" && (
+                <div className="tutor-controls">
+                  <button
+                    className="create-button"
+                    onClick={handleCreateAssignment}
+                  >
+                    <AddIcon fontSize="small" /> Add
+                  </button>
+                  <div className="submissions-dropdown-container">
+                    <button
+                      className="view-submissions-button"
+                      onClick={() => setSubmissionsDropdownOpen(!submissionsDropdownOpen)}
+                    >
+                      <VisibilityIcon fontSize="small" /> View Submissions
+                    </button>
+                    {submissionsDropdownOpen && (
+                      <div className="submissions-dropdown">
+                        {assignments.map((assignment) => (
+                          <div
+                            key={assignment.id}
+                            className="dropdown-item"
+                            onClick={() => {
+                              handleViewSubmissions(assignment);
+                              setSubmissionsDropdownOpen(false);
+                            }}
+                          >
+                            {assignment.title}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {userRole === "student" && (
                 <button
-                  className="create-button"
-                  onClick={handleCreateAssignment}
+                  className="view-submissions-button"
+                  onClick={() => setShowStudentSubmissions(true)}
                 >
-                  <AddIcon fontSize="small" />
-                  Add
+                  <VisibilityIcon fontSize="small" /> View My Submissions
                 </button>
               )}
             </div>
             <div className="assignments-list">
-              {assignments.map((assignment) => (
-                <div key={assignment.id} className="assignment-card">
-                  <h3>{assignment.title}</h3>
-                  <p>{assignment.description}</p>
-                  <p className="due-date">
-                    Due: {new Date(assignment.dueDate).toLocaleDateString()}
-                  </p>
-                  <div className="assignment-controls">
-                    <button
-                      onClick={() => handleViewAssignment(assignment)}
-                      title="View"
-                      className="view-button"
-                    >
-                      <VisibilityIcon />
-                    </button>
-                    {userRole === "tutor" && (
-                      <>
-                        <button
-                          onClick={() => handleEditAssignment(assignment)}
-                          title="Edit"
-                        >
-                          <EditIcon />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteAssignment(assignment.id)}
-                          title="Delete"
-                          className="delete-button"
-                        >
-                          <DeleteIcon />
-                        </button>
-                      </>
-                    )}
+              {assignments.map((assignment) => {
+                const hasSubmitted = isSubmitted(assignment);
+                const isOverdue = new Date(assignment.dueDate) < new Date();
+
+                return (
+                  <div 
+                    key={assignment.id} 
+                    className={`assignment-card ${isOverdue && !hasSubmitted ? 'overdue' : ''}`}
+                  >
+                    <h3>{assignment.title}</h3>
+                    <p>{assignment.description}</p>
+                    <p className={`due-date ${isOverdue ? 'overdue-text' : ''}`}>
+                      Due: {new Date(assignment.dueDate).toLocaleDateString()}
+                      {isOverdue && !hasSubmitted && " (Overdue)"}
+                    </p>
+                    <div className="assignment-controls">
+                      <button
+                        onClick={() => handleViewAssignment(assignment)}
+                        title="View"
+                        className="view-button"
+                      >
+                        <VisibilityIcon />
+                      </button>
+                      
+                      {userRole === "student" && (
+                        <div className="student-controls">
+                          <input
+                            type="file"
+                            onChange={(e) => handleFileChange(assignment.id, e.target.files)}
+                            style={{ display: 'none' }}
+                            id={`file-upload-${assignment.id}`}
+                          />
+                          <>
+                            <label 
+                              htmlFor={`file-upload-${assignment.id}`} 
+                              className="upload-button"
+                              title={assignmentFiles[assignment.id] ? 
+                                `Size: ${(assignmentFiles[assignment.id].size / (1024 * 1024)).toFixed(2)}MB` : 
+                                "Choose File"}
+                            >
+                              {assignmentFiles[assignment.id]?.name || "Choose File"}
+                            </label>
+                            <button
+                              className={`submit-button ${assignment.isSubmitted ? 'resubmit' : ''}`}
+                              onClick={() => handleAssignmentSubmit(assignment.id)}
+                              disabled={!assignmentFiles[assignment.id]}
+                            >
+                              {assignment.isSubmitted ? 'Resubmit Assignment' : 'Submit Assignment'}
+                            </button>
+                          </>
+                        </div>
+                      )}
+
+                      {userRole === "tutor" && (
+                        <>
+                          <button
+                            onClick={() => handleEditAssignment(assignment)}
+                            title="Edit"
+                          >
+                            <EditIcon />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAssignment(assignment.id)}
+                            title="Delete"
+                            className="delete-button"
+                          >
+                            <DeleteIcon />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+            {submitSuccess && (
+              <div className="success-popup">
+                Assignment submitted successfully!
+              </div>
+            )}
           </section>
         );
 
@@ -627,6 +899,117 @@ const ForumPage = () => {
     }
   };
 
+  const handleDownloadSubmission = async (submissionId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:7770/api/submissions/${submissionId}/file`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `submission-${submissionId}.pdf`; // or whatever the file extension should be
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        console.error('Failed to download submission');
+      }
+    } catch (error) {
+      console.error('Error downloading submission:', error);
+    }
+  };
+
+  // Add this function at the component level (inside ForumPage but outside any other functions)
+  const isSubmitted = (assignment) => {
+    if (!assignment || !assignment.submissions) return false;
+    return assignment.submissions.some(submission => submission.studentId === userId);
+  };
+
+  // Add this new function to fetch student submissions
+  const fetchStudentSubmissions = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:7770/api/submissions/student/${userId}`
+      );
+      if (response.ok) {
+        const submissions = await response.json();
+        // Organize submissions by assignment ID
+        const submissionsByAssignment = submissions.reduce((acc, sub) => {
+          acc[sub.assignmentId] = sub;
+          return acc;
+        }, {});
+        setStudentSubmissions(submissionsByAssignment);
+      }
+    } catch (error) {
+      console.error('Error fetching student submissions:', error);
+    }
+  };
+
+  // Add to useEffect where you fetch assignments
+  useEffect(() => {
+    if (forumId && userRole === 'student') {
+      fetchAssignments();
+      fetchStudentSubmissions();
+    }
+  }, [forumId, userRole]);
+
+  // Add this new component for viewing student submissions
+  const StudentSubmissionsModal = ({ onClose }) => {
+    const formatDate = (dateString) => {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    };
+
+    return (
+      <div className="modal-overlay">
+        <div className="submissions-modal">
+          <div className="modal-header">
+            <h2>My Submissions</h2>
+            <button className="close-button" onClick={onClose}>×</button>
+          </div>
+          <div className="submissions-list">
+            {assignments.map(assignment => {
+              const submission = studentSubmissions[assignment.id];
+              return (
+                <div key={assignment.id} className="submission-item">
+                  <div className="submission-info">
+                    <h3>{assignment.title}</h3>
+                    {submission ? (
+                      <>
+                        <p>Submitted: {formatDate(submission.submissionDate)}</p>
+                        <button 
+                          className="download-button"
+                          onClick={() => handleDownloadSubmission(submission.submissionId)}
+                        >
+                          <DownloadIcon /> Download Submission
+                        </button>
+                      </>
+                    ) : (
+                      <p>No submission yet</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="forum-page">
       <header className="forum-header">
@@ -634,13 +1017,18 @@ const ForumPage = () => {
           <div className="header-left">
             <img src="/logo.png" alt="Logo" className="logo" />
             <span className="platform-name">QuickLearn</span>
+            {forumDetails && (
+              <span className="forum-name">{forumDetails.forumName}</span>
+            )}
           </div>
           <div className="header-buttons">
             <button className="dashboard-button" onClick={handleDashboard}>
-              <DashboardIcon fontSize="small" /> Dashboard
+              <DashboardIcon fontSize="small" />
+              <span>Dashboard</span>
             </button>
             <button className="logout-button" onClick={handleLogout}>
-              <LogoutIcon fontSize="small" /> Logout
+              <LogoutIcon fontSize="small" />
+              <span>Logout</span>
             </button>
           </div>
         </div>
@@ -678,143 +1066,59 @@ const ForumPage = () => {
         </aside>
 
         <main className="forum-content">
-          {activeSection === "assignments" && (
-            <section className="forum-section">
-              <div className="section-header">
-                <h2>Assignments</h2>
-                {userRole === "tutor" && (
-                  <button
-                    className="create-button"
-                    onClick={handleCreateAssignment}
-                  >
-                    <AddIcon fontSize="small" /> Add
-                  </button>
-                )}
-              </div>
-              <div className="assignments-list">
-                {assignments.map((assignment) => (
-                  <div key={assignment.id} className="assignment-card">
-                    <h3>{assignment.title}</h3>
-                    <p>{assignment.description}</p>
-                    <p className="due-date">
-                      Due: {new Date(assignment.dueDate).toLocaleDateString()}
-                    </p>
-                    <div className="assignment-controls">
-                      <button
-                        onClick={() => handleViewAssignment(assignment)}
-                        title="View"
-                        className="view-button"
-                      >
-                        <VisibilityIcon />
-                      </button>
-                      {userRole === "tutor" && (
-                        <>
-                          <button
-                            onClick={() => handleEditAssignment(assignment)}
-                            title="Edit"
-                          >
-                            <EditIcon />
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleDeleteAssignment(assignment.id)
-                            }
-                            title="Delete"
-                            className="delete-button"
-                          >
-                            <DeleteIcon />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {activeSection === "chat" && renderChatSection()}
-
-          {activeSection === "notes" && (
-            <section className="forum-section notes-section">
-              <div className="section-header">
-                <h2>Notes</h2>
-                {userRole === "tutor" && (
-                  <button
-                    className="create-button"
-                    onClick={() => setShowNoteForm(true)}
-                  >
-                    <AddIcon fontSize="small" /> Add Note
-                  </button>
-                )}
-              </div>
-              <div className="notes-grid">
-                {notes.map((note) => (
-                  <div key={note.notesId} className="note-card">
-                    <h3 className="note-title">{note.title}</h3>
-                    <div className="note-controls">
-                      <button 
-                        className="download-button"
-                        onClick={() => handleDownload(note)}
-                        disabled={deletingNoteId === note.notesId}
-                        title="Download"
-                      >
-                        {deletingNoteId === note.notesId ? (
-                          <CircularProgress size={20} color="inherit" />
-                        ) : (
-                          <DownloadIcon />
-                        )}
-                      </button>
-                      {userRole === "tutor" && (
-                        <button
-                          className="delete-button"
-                          onClick={() => handleDeleteNote(note.notesId)}
-                          disabled={deletingNoteId === note.notesId}
-                          title="Delete"
-                        >
-                          {deletingNoteId === note.notesId ? (
-                            <CircularProgress size={20} color="inherit" />
-                          ) : (
-                            <DeleteIcon />
-                          )}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                {notes.length === 0 && (
-                  <div className="no-notes-message">No notes available</div>
-                )}
-              </div>
-            </section>
-          )}
+          {renderSection()}
         </main>
       </div>
+
       {showAssignmentForm && (
-        <AssignmentForm
-          isEdit={!!editingAssignment}
-          assignmentData={editingAssignment}
-          onClose={() => {
-            setShowAssignmentForm(false);
-            setEditingAssignment(null);
-          }}
-          forumId={forumId}
-          onSubmitSuccess={handleAssignmentSubmitSuccess}
-        />
+        <div className="assignment-form-overlay">
+          <AssignmentForm
+            isEdit={!!editingAssignment}
+            assignmentData={editingAssignment}
+            onClose={() => {
+              setShowAssignmentForm(false);
+              setEditingAssignment(null);
+            }}
+            forumId={forumId}
+            onSubmitSuccess={handleAssignmentSubmitSuccess}
+          />
+        </div>
       )}
+
       {viewingAssignment && (
-        <AssignmentForm
-          isView={true}
-          assignmentData={viewingAssignment}
-          onClose={() => setViewingAssignment(null)}
-          forumId={forumId}
+        <div className="assignment-form-overlay">
+          <AssignmentForm
+            isView={true}
+            assignmentData={viewingAssignment}
+            onClose={() => setViewingAssignment(null)}
+            forumId={forumId}
+          />
+        </div>
+      )}
+
+      {showNoteForm && (
+        <div className="note-form-overlay">
+          <NoteForm
+            onClose={() => setShowNoteForm(false)}
+            onSubmit={handleNoteUploadSuccess}
+            forumId={forumId}
+          />
+        </div>
+      )}
+
+      {showSubmissions && (
+        <SubmissionsModal
+          data={selectedAssignmentSubmissions}
+          onClose={() => {
+            setShowSubmissions(false);
+            setSelectedAssignmentSubmissions(null);
+          }}
         />
       )}
-      {showNoteForm && (
-        <NoteForm
-          onClose={() => setShowNoteForm(false)}
-          onSubmit={handleNoteUploadSuccess}
-          forumId={forumId}
+
+      {showStudentSubmissions && (
+        <StudentSubmissionsModal
+          onClose={() => setShowStudentSubmissions(false)}
         />
       )}
     </div>

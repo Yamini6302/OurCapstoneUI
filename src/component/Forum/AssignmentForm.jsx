@@ -72,78 +72,51 @@ const AssignmentForm = ({
   };
 
   return (
-    <div className="assignment-form-overlay">
-      <div className="assignment-form-container">
-        <div className="form-header">
-          <button className="back-button" onClick={onClose}>
-            <ArrowBackIcon /> Back
-          </button>
-          <h2>{isView ? 'View Assignment' : isEdit ? 'Edit Assignment' : 'Create Assignment'}</h2>
+    <div className="assignment-form">
+      <button className="close-button" onClick={onClose}>×</button>
+      <div className="form-header">
+        <h2>{isEdit ? 'Edit Assignment' : isView ? 'View Assignment' : 'Create Assignment'}</h2>
+      </div>
+      
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="title">Title</label>
+          <input
+            type="text"
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            disabled={isView}
+          />
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        <div className="form-group">
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            disabled={isView}
+          />
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="title">Title</label>
-            <input
-              type="text"
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              disabled={isView}
-              className={isView ? 'view-only' : ''}
-            />
-          </div>
+        <div className="form-group">
+          <label htmlFor="dueDate">Due Date</label>
+          <input
+            type="date"
+            id="dueDate"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            disabled={isView}
+          />
+        </div>
 
-          <div className="form-group">
-            <label htmlFor="description">Description</label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              rows={6}
-              disabled={isView}
-              className={isView ? 'view-only' : ''}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="dueDate">Due Date</label>
-            <input
-              type="date"
-              id="dueDate"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              required
-              min={new Date().toISOString().split('T')[0]}
-              disabled={isView}
-              className={isView ? 'view-only' : ''}
-            />
-          </div>
-
-          {!isView && (
-            <div className="form-buttons">
-              <button 
-                type="button" 
-                className="reset-button"
-                onClick={handleReset}
-              >
-                Reset
-              </button>
-              <button 
-                type="submit" 
-                className="submit-button"
-                disabled={isSubmitting}
-              >
-                {isEdit ? 'Update' : 'Submit'}
-              </button>
-            </div>
-          )}
-        </form>
-      </div>
+        {!isView && (
+          <button type="submit" className="submit-button">
+            {isEdit ? 'Update' : 'Create'} Assignment
+          </button>
+        )}
+      </form>
     </div>
   );
 };

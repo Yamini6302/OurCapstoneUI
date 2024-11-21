@@ -3,17 +3,16 @@
   --dark-pink: #EB3678;
   --orange: #FB773C;
   --white: #ffffff;
-  --light-gray: #f8f9fa;
-  --border-color: #e9ecef;
-  --text-primary: #212529;
-  --text-secondary: #6c757d;
+  --dark-bg: #121212;
+  --dark-surface: #1e1e1e;
+  --dark-surface-2: #2d2d2d;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
   --max-width: 1440px;
   --header-height: 80px;
   --sidebar-width: 280px;
-  --spacing-xs: 0.5rem;
-  --spacing-sm: 1rem;
-  --spacing-md: 1.5rem;
-  --spacing-lg: 2rem;
+  --gradient-primary: linear-gradient(135deg, var(--dark-pink) 0%, var(--orange) 100%);
 }
 
 /* Reset and Base Styles */
@@ -41,8 +40,8 @@
 .forum-sidebar {
   width: 240px;
   min-width: 240px;
-  background: #f8f9fa;
-  border-right: 1px solid #e9ecef;
+  background: var(--dark-surface);
+  border-right: 1px solid var(--border-color);
   position: fixed;
   top: 64px; /* Adjust this value to match your header height */
   left: 0;
@@ -56,20 +55,19 @@
   display: flex;
   align-items: center;
   padding: 16px;
-  color: #495057;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: background-color 0.2s;
   gap: 12px;
 }
 
 .nav-item:hover {
-  background: #e9ecef;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .nav-item.active {
-  background: #e9ecef;
-  color: #0056b3;
-  font-weight: 500;
+  background: var(--gradient-primary);
+  color: white;
 }
 
 /* Main content area adjustments */
@@ -79,6 +77,8 @@
   width: calc(100% - 240px);
   overflow-y: auto;
   height: calc(100vh - 64px); /* Adjust based on header height */
+  z-index: 50;
+  background-color: var(--dark-bg);
 }
 
 /* Rest of your existing styles... */
@@ -94,8 +94,8 @@
 
 .section-header {
   padding: 20px;
-  background: white;
-  border-bottom: 1px solid #e9ecef;
+  background: var(--dark-surface);
+  border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -119,19 +119,18 @@
   left: 0;
   right: 0;
   z-index: 1000;
-  background: white;
-  border-bottom: 1px solid #e9ecef;
+  background: var(--dark-surface);
+  border-bottom: 1px solid var(--border-color);
 }
 
 /* Header Styles */
 .forum-header {
-  background-color: var(--dark-blue);
+  background-color: var(--dark-surface);
   height: 64px;
   position: fixed;
   top: 0;
   width: 100%;
   z-index: 100;
-  padding: 0 2rem;
 }
 
 .header-content {
@@ -139,14 +138,14 @@
   justify-content: space-between;
   align-items: center;
   height: 100%;
-  max-width: fit-content;
-  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .logo {
@@ -158,7 +157,18 @@
   color: var(--white);
   font-size: 1.25rem;
   font-weight: 600;
+}
+
+.forum-name {
+  font-size: 1.5rem;
+  color: var(--white);
+  font-weight: 600;
   letter-spacing: 0.5px;
+}
+
+/* Remove the previous separator styles */
+.forum-name::before {
+  display: none;
 }
 
 .header-buttons {
@@ -167,13 +177,11 @@
   gap: 12px;
 }
 
-.dashboard-button {
+/* Update button styles */
+.dashboard-button, .logout-button {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(135deg, var(--dark-blue) 0%, var(--dark-pink) 100%);
-  color: var(--white);
-  border: none;
   padding: 8px 16px;
   border-radius: 20px;
   font-size: 0.875rem;
@@ -181,44 +189,55 @@
   cursor: pointer;
   transition: all 0.3s ease;
   height: 36px;
-  min-width: fit-content;
-  white-space: nowrap;
+  border: none;
+  color: white;
+  background: var(--gradient-primary);
 }
 
-.dashboard-button:hover {
+.dashboard-button {
+  background: linear-gradient(135deg, var(--dark-pink) 0%, var(--orange) 100%);
+}
+
+.logout-button {
+  background: linear-gradient(135deg, var(--dark-pink) 0%, var(--orange) 100%);
+}
+
+.dashboard-button:hover, .logout-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(24, 1, 97, 0.3);
 }
 
-.dashboard-button .MuiSvgIcon-root {
-  font-size: 18px;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .header-content {
+    padding: 0 1rem;
+  }
+  
+  .platform-name {
+    font-size: 1.1rem;
+  }
+  
+  .forum-name {
+    font-size: 1.3rem;
+  }
+  
+  .header-buttons {
+    gap: 8px;
+  }
+
+  .dashboard-button, .logout-button {
+    padding: 8px 12px;
+  }
 }
 
-.logout-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: linear-gradient(135deg, var(--dark-pink) 0%, var(--orange) 100%);
-  color: var(--white);
-  border: none;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  height: 36px;
-  min-width: fit-content;
-  white-space: nowrap;
-}
-
-.logout-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(235, 54, 120, 0.3);
-}
-
-.logout-button .MuiSvgIcon-root {
-  font-size: 18px;
+@media (max-width: 480px) {
+  .platform-name {
+    display: none;
+  }
+  
+  .forum-name {
+    font-size: 1.2rem;
+  }
 }
 
 /* Main Content Area */
@@ -244,11 +263,12 @@
 
 /* Section Styles */
 .forum-section {
-  background-color: var(--white);
+  background-color: var(--dark-surface);
   border-radius: 12px;
   padding: var(--spacing-lg);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s ease;
+  border: 1px solid var(--border-color);
 }
 
 .forum-section:hover {
@@ -257,12 +277,13 @@
 
 /* Assignment Cards */
 .assignment-card {
-  background-color: var(--white);
+  background-color: var(--dark-surface);
   border-radius: 8px;
   padding: var(--spacing-md);
   margin-bottom: var(--spacing-md);
   border: 1px solid var(--border-color);
   transition: all 0.3s ease;
+  color: var(--text-primary);
 }
 
 .assignment-card:hover {
@@ -273,151 +294,125 @@
 .chat-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  background-color: #f5f7fb;
-  border-radius: 12px;
-  overflow: hidden;
+  height: calc(100vh - 64px); /* Adjust to header height */
+  padding: 20px;
+  background: var(--dark-bg);
+  margin-top: 64px; /* Add margin-top equal to header height */
 }
 
 .messages-container {
-  flex-grow: 1;
-  padding: 20px;
+  flex: 1;
   overflow-y: auto;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
 .message-bubble {
-  max-width: 70%;
-  padding: 12px 16px;
-  border-radius: 16px;
+  max-width: 85%; /* Increased width */
+  padding: 16px 20px; /* Increased padding */
+  border-radius: 12px;
   position: relative;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  word-wrap: break-word;
 }
 
 .message-bubble.sent {
   align-self: flex-end;
-  background-color: #0084ff;
+  background: var(--gradient-primary);
   color: white;
-  border-bottom-right-radius: 4px;
+  margin-left: 20px; /* Add some margin on the left for sent messages */
+  box-shadow: 0 4px 15px rgba(235, 54, 120, 0.2);
 }
 
 .message-bubble.received {
   align-self: flex-start;
-  background-color: white;
-  color: #1c1e21;
-  border-bottom-left-radius: 4px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  background: var(--dark-surface-2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  margin-right: 20px; /* Add some margin on the right for received messages */
 }
 
 .message-info {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 4px;
-  font-size: 0.8rem;
+  margin-bottom: 6px; /* Increased spacing */
 }
 
-.sent .message-info {
-  justify-content: flex-end;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.received .message-info {
-  color: #65676b;
+.username {
+  font-size: 0.9rem; /* Slightly larger username */
+  font-weight: 600;
 }
 
 .message-text {
-  font-size: 0.95rem;
-  line-height: 1.4;
-  word-wrap: break-word;
-}
-
-.no-messages {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #65676b;
-  font-size: 0.95rem;
-  text-align: center;
-  padding: 20px;
+  font-size: 1.1rem; /* Larger text size */
+  line-height: 1.5;
 }
 
 .message-input-container {
   display: flex;
   gap: 12px;
-  padding: 16px;
-  background-color: white;
-  border-top: 1px solid #e4e6eb;
+  padding: 20px;
+  background: var(--dark-surface);
+  border-radius: 12px;
+  margin-top: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
 }
 
 .message-input {
-  flex-grow: 1;
-  padding: 12px;
-  border: 1px solid #e4e6eb;
-  border-radius: 24px;
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 12px; /* Increased padding */
   resize: none;
-  min-height: 24px;
+  font-size: 1.1rem; /* Larger input text */
+  font-family: inherit;
+  min-height: 48px; /* Taller input area */
   max-height: 120px;
-  font-size: 0.95rem;
-  line-height: 1.4;
-  transition: border-color 0.2s ease;
+  background: transparent;
+  color: var(--text-primary);
 }
 
-.message-input:focus {
-  outline: none;
-  border-color: #0084ff;
+.message-input::placeholder {
+  color: var(--text-secondary);
 }
 
 .send-message-button {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #0084ff;
+  width: 48px; /* Larger button */
+  height: 48px; /* Larger button */
+  background: var(--gradient-primary);
   color: white;
   border: none;
-  cursor: pointer;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .send-message-button:hover {
   background-color: #0073e6;
+  transform: translateY(-2px);
 }
 
-.send-message-button:disabled {
-  background-color: #e4e6eb;
-  cursor: not-allowed;
+/* Ensure the chat section takes full width */
+.forum-section.chat-section {
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-.send-message-button svg {
-  font-size: 1.2rem;
+/* Remove any extra margins or paddings that might affect the size */
+.forum-content {
+  padding: 0;
+  height: 100%;
 }
 
-/* Custom scrollbar for messages container */
-.messages-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-.messages-container::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.messages-container::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-}
-
-.messages-container::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.3);
+.forum-section {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 /* Buttons */
@@ -447,8 +442,8 @@
 
 .section-header {
   padding: 20px;
-  background: white;
-  border-bottom: 1px solid #e9ecef;
+  background: var(--dark-surface);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -465,7 +460,7 @@
 }
 
 .note-card {
-  background: white;
+  background: var(--dark-surface);
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -474,6 +469,8 @@
   justify-content: space-between;
   align-items: center;
   gap: 16px;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
 
 .note-card:hover {
@@ -510,7 +507,8 @@
 }
 
 .download-button {
-  background: #0056b3;
+  background: var(--gradient-primary);
+  color: white;
 }
 
 .download-button a {
@@ -550,7 +548,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: #0056b3;
+  background: var(--gradient-primary);
   color: white;
   border: none;
   border-radius: 6px;
@@ -717,11 +715,13 @@
 }
 
 .assignment-card {
-  background: white;
+  background: var(--dark-surface);
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
 
 .assignment-card:hover {
@@ -910,4 +910,1105 @@
 
 .delete-button:hover:not(:disabled) {
   animation: shake 0.4s ease-in-out;
+}
+
+.assignment-card.overdue {
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
+.due-date.overdue-text {
+  color: #ff0000;
+  font-weight: bold;
+}
+
+.submit-button {
+  padding: 8px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #2e7d32; /* Dark green color */
+  color: white;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  flex-grow: 1;
+  min-width: 150px;
+  transition: all 0.2s ease;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.submit-button:hover:not(:disabled) {
+  background-color: #1b5e20; /* Darker green on hover */
+}
+
+.submit-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Style for resubmit button */
+.submit-button.resubmit {
+  background-color: #1976D2; /* Blue color for resubmit */
+}
+
+.submit-button.resubmit:hover:not(:disabled) {
+  background-color: #1976D2; /* Blue color for resubmit */
+}
+
+.submit-button.submitted {
+  background-color: #666;
+  width: 100%;
+  justify-content: center;
+  cursor: default;
+}
+
+/* Popup form container styles */
+.assignment-form-overlay,
+.note-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Form Container */
+.assignment-form,
+.note-form {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  z-index: 1001;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Scrollbar Styling */
+.assignment-form::-webkit-scrollbar,
+.note-form::-webkit-scrollbar {
+  width: 8px;
+}
+
+.assignment-form::-webkit-scrollbar-track,
+.note-form::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.assignment-form::-webkit-scrollbar-thumb,
+.note-form::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.assignment-form::-webkit-scrollbar-thumb:hover,
+.note-form::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Form Header */
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.form-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+/* Close Button */
+.close-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s ease;
+  padding: 5px;
+  line-height: 1;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+/* Form Fields */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+  font-weight: 500;
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group input[type="date"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus,
+.form-group input[type="date"]:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+/* Submit Button */
+.submit-button {
+  background-color: #1976d2;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.submit-button:hover {
+  background-color: #1565c0;
+}
+
+.submit-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Error Message */
+.error-message {
+  color: #d32f2f;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+/* Success Message */
+.success-message {
+  display: flex;
+  align-items: center;
+  background-color: #4caf50;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  margin-top: 8px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.success-message .close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  margin-left: 8px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.success-message .close-button:hover {
+  opacity: 0.8;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.upload-button {
+  padding: 6px 12px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 8px;
+  border: 1px solid #ddd;
+}
+
+.upload-button:hover {
+  background-color: #e0e0e0;
+}
+
+.student-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.upload-button {
+  padding: 8px 16px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  transition: background-color 0.2s;
+}
+
+.upload-button:hover {
+  background-color: #e0e0e0;
+}
+
+.submit-button {
+  padding: 8px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #2e7d32; /* Dark green color */
+  color: white;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  flex-grow: 1;
+  min-width: 150px;
+  transition: all 0.2s ease;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.submit-button:hover:not(:disabled) {
+  background-color: #1b5e20; /* Darker green on hover */
+}
+
+.submit-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.submit-button.submitted {
+  background-color: #666;
+  width: 100%;
+  justify-content: center;
+  cursor: default;
+}
+
+/* Add animation for the checkmark */
+@keyframes checkmark {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.submitted::after {
+  content: '✓';
+  display: inline-block;
+  animation: checkmark 0.3s ease-in-out;
+}
+
+.file-info {
+  font-size: 0.8em;
+  color: #666;
+  margin-left: 8px;
+}
+
+.upload-button {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  max-width: 300px;
+  overflow: hidden;
+}
+
+.upload-button:hover {
+  background-color: #e0e0e0;
+}
+
+.student-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tutor-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.submissions-dropdown-container {
+  position: relative;
+}
+
+.view-submissions-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.view-submissions-button:hover {
+  background-color: #1976D2;
+}
+
+.submissions-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  z-index: 1000;
+  min-width: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.dropdown-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.submissions-modal {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.submissions-list {
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.submission-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.submission-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.student-name {
+  font-weight: 500;
+}
+
+.submission-date {
+  color: #6c757d;
+  font-size: 0.8rem;
+}
+
+.submission-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.download-button {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.download-button:hover {
+  background-color: #1976D2;
+}
+
+.no-submissions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #6c757d;
+  font-size: 1rem;
+  text-align: center;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 20px;
+}
+
+.no-submissions span {
+  font-style: italic;
+}
+
+.submission-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.student-name {
+  font-weight: 500;
+  color: #2196f3;
+}
+
+.submission-date {
+  color: #666;
+}
+
+.submission-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.submission-item:last-child {
+  border-bottom: none;
+}
+
+.submit-button.resubmit {
+  background-color: #2196F3;
+}
+
+.submit-button.resubmit:hover:not(:disabled) {
+  background-color: #1976D2;
+}
+
+.submission-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #4CAF50;
+  font-size: 0.9rem;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.status-icon {
+  font-size: 1.1rem;
+}
+
+.submitted-card {
+  position: relative;
+}
+
+.submitted-card::after {
+  content: 'Submitted';
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* Optional: Add a subtle border change for submitted assignments */
+.submitted-card {
+  border-left: 4px solid #4CAF50 !important;
+  background-color: rgba(76, 175, 80, 0.1) !important;
+}
+
+.submit-button {
+  background-color: #2e7d32;
+  color: white;
+  /* ... other existing styles ... */
+}
+
+.submit-button.resubmit {
+  background-color: #1976D2;
+}
+
+.submission-status {
+  color: #4CAF50;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.status-icon {
+  color: #4CAF50;
+}
+
+.submission-message {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 4px;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.submitted-card {
+  border-left: 4px solid #4CAF50;
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.submit-button.resubmit {
+  background-color: #1976D2;
+}
+
+.submit-button.resubmit:hover:not(:disabled) {
+  background-color: #1565C0;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.success-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #4CAF50;
+  color: white;
+  padding: 15px 30px;
+  border-radius: 5px;
+  z-index: 1000;
+  animation: fadeInOut 1s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.submissions-modal {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  width: 80%;
+  max-width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0 8px;
+}
+
+.submission-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.submission-info {
+  flex-grow: 1;
+}
+
+.submission-details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.assignment-title {
+  font-weight: bold;
+}
+
+.submission-date {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.submission-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.download-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.download-button:hover {
+  background-color: #45a049;
+}
+
+.no-submissions {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.view-submissions-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.view-submissions-button:hover {
+  background-color: #1976D2;
+}
+
+.forum-name {
+  font-size: 1.5rem;
+  color: var(--white);
+  font-weight: 600;
+  padding-left: 20px;
+  position: relative;
+  letter-spacing: 0.5px;
+}
+
+/* Update the separator to be white with reduced opacity */
+.forum-name::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 24px;
+  width: 2px;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Update header-left to better align items */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Optional: Adjust platform name for better visual hierarchy */
+.platform-name {
+  color: var(--white);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Update background colors */
+body {
+  background-color: var(--dark-bg);
+  color: var(--text-primary);
+}
+
+.forum-header {
+  background-color: var(--dark-surface);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.forum-sidebar {
+  background: var(--dark-surface);
+  border-right: 1px solid var(--border-color);
+}
+
+.forum-content {
+  background-color: var(--dark-bg);
+}
+
+/* Update chat styles */
+.chat-container {
+  background: var(--dark-bg);
+}
+
+.message-bubble.sent {
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: 0 4px 15px rgba(235, 54, 120, 0.2);
+}
+
+.message-bubble.received {
+  background: var(--dark-surface-2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.message-input-container {
+  background: var(--dark-surface);
+  border: 1px solid var(--border-color);
+}
+
+.message-input {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.message-input::placeholder {
+  color: var(--text-secondary);
+}
+
+/* Update cards and sections */
+.forum-section {
+  background: var(--dark-surface);
+  border: 1px solid var(--border-color);
+}
+
+.assignment-card, .note-card {
+  background: var(--dark-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.assignment-card:hover, .note-card:hover {
+  box-shadow: 0 6px 20px rgba(235, 54, 120, 0.2);
+}
+
+/* Update modal styles */
+.submissions-modal {
+  background: var(--dark-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.modal-overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+}
+
+/* Update buttons */
+.dashboard-button, .logout-button {
+  background: var(--gradient-primary);
+  color: white;
+}
+
+.create-button {
+  background: var(--gradient-primary);
+  color: white;
+}
+
+.send-message-button {
+  background: var(--gradient-primary);
+}
+
+/* Update text colors */
+h1, h2, h3 {
+  color: var(--text-primary);
+}
+
+p, span {
+  color: var(--text-secondary);
+}
+
+.nav-item {
+  color: var(--text-secondary);
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-item.active {
+  background: var(--gradient-primary);
+  color: white;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--dark-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--dark-surface-2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--dark-pink);
+}
+
+/* Section headers */
+.section-header {
+  background: var(--dark-surface);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Update form inputs */
+input, textarea {
+  background: var(--dark-surface-2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+/* Update download and action buttons */
+.download-button {
+  background: var(--gradient-primary);
+  color: white;
+}
+
+.delete-button {
+  background: #dc3545;
+  color: white;
+}
+
+/* Status indicators */
+.submission-status {
+  color: var(--dark-pink);
+}
+
+.due-date {
+  color: var(--orange);
+}
+
+/* No content messages */
+.no-messages, .no-submissions, .no-notes-message {
+  color: var(--text-secondary);
+}
+
+/* Header and Layout fixes */
+.forum-header {
+  background-color: var(--dark-surface);
+  border-bottom: 1px solid var(--border-color);
+  height: 64px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  padding: 0 24px;
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+/* Main content layout */
+.forum-main {
+  display: flex;
+  height: calc(100vh - 64px); /* Subtract header height */
+  margin-top: 64px; /* Add margin equal to header height */
+}
+
+.forum-sidebar {
+  position: fixed;
+  top: 64px; /* Position below header */
+  left: 0;
+  width: var(--sidebar-width);
+  height: calc(100vh - 64px);
+  background: var(--dark-surface);
+  border-right: 1px solid var(--border-color);
+  overflow-y: auto;
+}
+
+.forum-content {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  background-color: var(--dark-bg);
+  overflow-y: auto;
+  height: 100%;
+}
+
+/* Section specific fixes */
+.forum-section {
+  padding: 24px;
+  height: 100%;
+}
+
+.chat-container {
+  height: calc(100vh - 64px);
+  padding: 24px;
+  margin-top: 0; /* Remove any extra margin */
+}
+
+.messages-container {
+  height: calc(100% - 100px); /* Account for input container */
+  overflow-y: auto;
+  padding: 16px 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .forum-sidebar {
+    width: 80px;
+  }
+  
+  .forum-content {
+    margin-left: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content {
+    padding: 0 16px;
+  }
+  
+  .forum-main {
+    margin-top: 56px;
+    height: calc(100vh - 56px);
+  }
+  
+  .forum-sidebar {
+    top: 56px;
+  }
 }
