@@ -9,9 +9,76 @@ function RegisterPage() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [usernameError, setUsernameError] = useState(""); // Track username-specific errors
-  const [successMessage, setSuccessMessage] = useState(""); // State for success message
+  const [usernameError, setUsernameError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
+
+  // Simplified handleEmailChange - just update the state
+  const handleEmailChange = (e) => {
+    const email = e.target.value;
+    setUsername(email);
+    // Remove immediate validation
+    setUsernameError(""); // Clear any existing errors when typing
+  };
+
+  // Handle register logic with validation
+  const handleRegister = async (e) => {
+    e.preventDefault();
+
+    // Email validation on form submission
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(username)) {
+      setUsernameError("Please enter a valid email address");
+      return; // Stop form submission if email is invalid
+    }
+
+    // Check if email already exists
+    try {
+      const emailExists = await validateEmail(username);
+      if (emailExists) {
+        setUsernameError("This email is already registered");
+        return;
+      }
+
+      const response = await fetch("http://localhost:7779/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, role }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSuccessMessage("Registration successful!");
+        sessionStorage.setItem("userId", data.userId);
+        setErrorMessage("");
+        setUsernameError("");
+
+        setTimeout(() => {
+          if (role === "Student") {
+            navigate("/student-details");
+          } else if (role === "Tutor") {
+            navigate("/tutor-details");
+          }
+        }, 1000);
+      } else {
+        const errorText = await response.text();
+        let errorData = {};
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (error) {
+          errorData.message = errorText;
+        }
+
+        const errorMessage = errorData.message || "Error during registration.";
+        setErrorMessage(errorMessage);
+        setUsernameError("");
+      }
+    } catch (error) {
+      console.error("Error during registration:", error);
+      setErrorMessage("An error occurred. Please try again later.");
+      setUsernameError("");
+    }
+  };
 
   // Add email validation function
   const validateEmail = async (email) => {
@@ -28,87 +95,6 @@ function RegisterPage() {
     } catch (error) {
       console.error("Error checking email:", error);
       return false;
-    }
-  };
-
-  // Handle register logic
-  const handleRegister = async (e) => {
-    e.preventDefault();
-
-    // Check if email already exists
-    const emailExists = await validateEmail(username);
-    if (emailExists) {
-      setUsernameError("Invalid email. This email is already registered.");
-      return;
-    }
-
-    const requestBody = { username, password, role };
-
-    try {
-      const response = await fetch("http://localhost:7779/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSuccessMessage("Registration successful!"); // Set success message
-        
-        // Store userId in session storage
-        sessionStorage.setItem("userId", data.userId);
-
-        // Clear any previous error messages
-        setErrorMessage("");
-        setUsernameError("");
-
-        // Redirect based on role after 1 second
-        setTimeout(() => {
-          if (role === "Student") {
-            navigate("/student-details");
-          } else if (role === "Tutor") {
-            navigate("/tutor-details");
-          }
-        }, 1000);
-      } else {
-        const errorText = await response.text();
-        console.error("Error response:", errorText);
-
-        let errorData = {};
-        try {
-          errorData = JSON.parse(errorText);
-        } catch (error) {
-          errorData.message = errorText;
-        }
-
-        const errorMessage = errorData.message || "Error during registration.";
-
-        if (errorMessage.includes("Username already exists")) {
-          setUsernameError("This email is already registered. Please choose another one.");
-          setErrorMessage("");
-        } else {
-          setErrorMessage(errorMessage);
-          setUsernameError("");
-        }
-      }
-    } catch (error) {
-      console.error("Error during registration:", error);
-      setErrorMessage("An error occurred. Please try again later.");
-      setUsernameError("");
-    }
-  };
-
-  // Add email validation on input change
-  const handleEmailChange = (e) => {
-    const email = e.target.value;
-    setUsername(email);
-    
-    // Basic email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setUsernameError("Please enter a valid email address");
-    } else {
-      setUsernameError("");
     }
   };
 
