@@ -8,6 +8,7 @@ import StudentDetails from './component/StudentDetails';
 import TutorDetails from './component/TutorDetails';
 import TutorDashboard from "./component/TutorDashboard";
 import StudentDashboard from "./component/StudentDashboard";
+import Forum from './component/Forum'; 
 
 function App() {
   return (
@@ -21,9 +22,12 @@ function App() {
         <Route path="/tutor-details" element={<TutorDetails />} />
         <Route path="/tutor" element={<TutorDashboard />} /> 
         <Route path="/student" element={<StudentDashboard />} />
+        <Route path="/forum/:forumId" element={<Forum />} />
+        
+
       </Routes>
     </Router>
-  );
+  );``
 }
 
 export default App;
