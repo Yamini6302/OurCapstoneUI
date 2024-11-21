@@ -3,11 +3,17 @@ import { useNavigate } from "react-router-dom";
 import './css/TutorDashboard.css';  // Import the CSS file
 
 // Add this component before the TutorDashboard function
-const CourseCard = ({ course }) => {
+const CourseCard = ({ course, onDelete }) => {
     return (
         <div className="tutor-dash-course-card" key={course.courseId}>
             <h3 className="tutor-dash-course-title">{course.courseName}</h3>
             <p className="tutor-dash-course-description">{course.description}</p>
+            <button 
+                className="tutor-dash-delete-button"
+                onClick={() => onDelete(course.courseId)}
+            >
+                Delete Course
+            </button>
         </div>
     );
 };
@@ -687,6 +693,79 @@ function TutorDashboard() {
     }
   };
 
+  // Add the delete handler function in TutorDashboard component
+  const handleDeleteCourse = async (courseId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this course? This will also delete all related forums and course-tutor mappings.");
+    if (!confirmDelete) return;
+
+    try {
+        // First, get all course-tutor mappings for this course
+        const courseTutorResponse = await fetch(`http://localhost:7772/api/course-tutors/${courseId}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'include'
+        });
+
+        if (courseTutorResponse.ok) {
+            const courseTutorData = await courseTutorResponse.json();
+            const ctId = courseTutorData.ctid;
+
+            // Delete forum entries associated with this ctId
+            if (ctId) {
+                const forumResponse = await fetch(`http://localhost:7771/api/forum/ct/${ctId}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                if (!forumResponse.ok) {
+                    console.error("Failed to delete forum entries");
+                }
+            }
+
+            // Delete course-tutor mapping
+            const deleteMappingResponse = await fetch(`http://localhost:7772/api/course-tutors/${courseId}`, {
+                method: "DELETE",
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                },
+                credentials: 'include'
+            });
+
+            if (!deleteMappingResponse.ok) {
+                console.error("Failed to delete course-tutor mapping");
+            }
+        }
+
+        // Finally, delete the course
+        const response = await fetch(`http://localhost:7773/api/courses/${courseId}`, {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete course');
+        }
+
+        // Refresh the courses list after successful deletion
+        await fetchCreatedCourses();
+        alert("Course deleted successfully!");
+    } catch (error) {
+        console.error("Error deleting course:", error);
+        alert("Failed to delete course and related data");
+    }
+  };
+
   // Filter courses based on search term
   const filteredCourses = courses.filter((course) =>
     course.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -765,13 +844,17 @@ function TutorDashboard() {
           <h2 className="tutor-dash-section-title">My Courses</h2>
           <div className="tutor-dash-course-list">
             {filteredCourses.length > 0 ? (
-              filteredCourses.map((course) => (
-                <CourseCard key={course.courseId} course={course} />
-              ))
+                filteredCourses.map((course) => (
+                    <CourseCard 
+                        key={course.courseId} 
+                        course={course} 
+                        onDelete={handleDeleteCourse}
+                    />
+                ))
             ) : (
-              <div className="tutor-dash-no-results">
-                <p>No courses found matching "{searchTerm}"</p>
-              </div>
+                <div className="tutor-dash-no-results">
+                    <p>No courses found matching "{searchTerm}"</p>
+                </div>
             )}
           </div>
         </div>
