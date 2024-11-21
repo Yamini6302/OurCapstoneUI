@@ -3,17 +3,11 @@ import { useNavigate } from "react-router-dom";
 import './css/TutorDashboard.css';  // Import the CSS file
 
 // Add this component before the TutorDashboard function
-const CourseCard = ({ course, onDelete }) => {
+const CourseCard = ({ course }) => {
     return (
         <div className="tutor-dash-course-card" key={course.courseId}>
             <h3 className="tutor-dash-course-title">{course.courseName}</h3>
             <p className="tutor-dash-course-description">{course.description}</p>
-            <button 
-                className="tutor-dash-delete-button"
-                onClick={() => onDelete(course.courseId)}
-            >
-                Delete Course
-            </button>
         </div>
     );
 };
@@ -669,14 +663,14 @@ function TutorDashboard() {
         const forumData = await response.json();
         
         // Check if we got valid forum data
-        if (!forumData || !forumData.forumId) {
+        if (!forumData || !forumData.forud) {
             console.error("Invalid forum data received:", forumData);
             alert("Forum not found");
             return;
         }
 
         // Navigate to the forum page with the correct ID
-        navigate(`/forum/${forumData.forumId}`);
+        navigate(`/forum/${forumData.forumid}`);
     } catch (error) {
         console.error("Error opening forum:", error);
         alert("Failed to open forum: " + error.message);
@@ -708,79 +702,6 @@ function TutorDashboard() {
     } catch (error) {
         console.error("Error deleting forum:", error);
         setError("Failed to delete forum");
-    }
-  };
-
-  // Add the delete handler function in TutorDashboard component
-  const handleDeleteCourse = async (courseId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this course? This will also delete all related forums and course-tutor mappings.");
-    if (!confirmDelete) return;
-
-    try {
-        // First, get all course-tutor mappings for this course
-        const courseTutorResponse = await fetch(`http://localhost:7772/api/course-tutors/${courseId}`, {
-            method: "GET",
-            headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json"
-            },
-            credentials: 'include'
-        });
-
-        if (courseTutorResponse.ok) {
-            const courseTutorData = await courseTutorResponse.json();
-            const ctId = courseTutorData.ctid;
-
-            // Delete forum entries associated with this ctId
-            if (ctId) {
-                const forumResponse = await fetch(`http://localhost:7771/api/forum/ct/${ctId}`, {
-                    method: "DELETE",
-                    headers: {
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
-                    }
-                });
-
-                if (!forumResponse.ok) {
-                    console.error("Failed to delete forum entries");
-                }
-            }
-
-            // Delete course-tutor mapping
-            const deleteMappingResponse = await fetch(`http://localhost:7772/api/course-tutors/${courseId}`, {
-                method: "DELETE",
-                headers: {
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
-                },
-                credentials: 'include'
-            });
-
-            if (!deleteMappingResponse.ok) {
-                console.error("Failed to delete course-tutor mapping");
-            }
-        }
-
-        // Finally, delete the course
-        const response = await fetch(`http://localhost:7773/api/courses/${courseId}`, {
-            method: "DELETE",
-            headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json"
-            },
-            credentials: 'include'
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to delete course');
-        }
-
-        // Refresh the courses list after successful deletion
-        await fetchCreatedCourses();
-        alert("Course deleted successfully!");
-    } catch (error) {
-        console.error("Error deleting course:", error);
-        alert("Failed to delete course and related data");
     }
   };
 
@@ -866,7 +787,6 @@ function TutorDashboard() {
                     <CourseCard 
                         key={course.courseId} 
                         course={course} 
-                        onDelete={handleDeleteCourse}
                     />
                 ))
             ) : (
@@ -920,19 +840,23 @@ function TutorDashboard() {
         <div className="tutor-dash-modal-overlay">
             <div className="tutor-dash-modal-content">
                 <h2 className="tutor-dash-modal-title">Create New Course</h2>
-                <input
-                    type="text"
-                    className="tutor-dash-modal-input"
-                    placeholder="Course Name"
-                    value={courseName}
-                    onChange={(e) => setCourseName(e.target.value)}
-                />
-                <textarea
-                    className="tutor-dash-modal-textarea"
-                    placeholder="Course Description"
-                    value={courseDescription}
-                    onChange={(e) => setCourseDescription(e.target.value)}
-                />
+                <div className="tutor-dash-input-group">
+                    <input
+                        type="text"
+                        placeholder=" "
+                        value={courseName}
+                        onChange={(e) => setCourseName(e.target.value)}
+                    />
+                    <label>Course Name</label>
+                </div>
+                <div className="tutor-dash-input-group">
+                    <textarea
+                        placeholder=" "
+                        value={courseDescription}
+                        onChange={(e) => setCourseDescription(e.target.value)}
+                    />
+                    <label>Course Description</label>
+                </div>
                 {error && <div className="tutor-dash-error-message">{error}</div>}
                 <div className="tutor-dash-modal-buttons">
                     <button 
@@ -957,12 +881,12 @@ function TutorDashboard() {
       {isScheduleModalOpen && (
           <div className="tutor-dash-modal-overlay">
               <div className="tutor-dash-modal-content">
-                  <h3>Schedule Course</h3>
-                  <div className="tutor-dash-modal-input-group">
+                  <h2 className="tutor-dash-modal-title">Schedule Course</h2>
+                  <div className="tutor-dash-input-group">
                       <select 
-                          className="tutor-dash-modal-input"
                           value={selectedCourseId}
                           onChange={(e) => setSelectedCourseId(e.target.value)}
+                          className="tutor-dash-select"
                       >
                           <option value="">Select a Course</option>
                           {courses && courses.map(course => (
@@ -971,40 +895,48 @@ function TutorDashboard() {
                               </option>
                           ))}
                       </select>
-                      {(!courses || courses.length === 0) && (
-                          <p className="tutor-dash-no-courses-message">No courses available. Create a course first.</p>
-                      )}
+                      <label>Select Course</label>
+                  </div>
+                  <div className="tutor-dash-input-group">
                       <input 
                           type="date"
-                          className="tutor-dash-modal-input"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
                           min={new Date().toISOString().split('T')[0]}
+                          placeholder=" "
+                          className="tutor-dash-date-input"
                       />
+                      <label>Start Date</label>
+                  </div>
+                  <div className="tutor-dash-input-group">
                       <input
                           type="text"
-                          className="tutor-dash-modal-input"
-                          placeholder="Forum Name"
+                          placeholder=" "
                           value={forumName}
                           onChange={(e) => setForumName(e.target.value)}
                       />
+                      <label>Forum Name</label>
                   </div>
-                  {error && <p className="tutor-dash-error">{error}</p>}
+                  {error && <div className="tutor-dash-error-message">{error}</div>}
                   <div className="tutor-dash-modal-buttons">
                       <button 
+                          className="tutor-dash-modal-button tutor-dash-modal-button-secondary"
+                          onClick={() => {
+                              setIsScheduleModalOpen(false);
+                              setSelectedCourseId('');
+                              setStartDate('');
+                              setForumName('');
+                              setError('');
+                          }}
+                      >
+                          Cancel
+                      </button>
+                      <button 
+                          className="tutor-dash-modal-button tutor-dash-modal-button-primary"
                           onClick={handleScheduleCourse}
                           disabled={courses.length === 0}
                       >
                           Schedule Course
-                      </button>
-                      <button onClick={() => {
-                          setIsScheduleModalOpen(false);
-                          setSelectedCourseId('');
-                          setStartDate('');
-                          setForumName('');
-                          setError('');
-                      }}>
-                          Cancel
                       </button>
                   </div>
               </div>
@@ -1015,7 +947,13 @@ function TutorDashboard() {
       {isScheduledCoursesModalOpen && (
           <div className="tutor-dash-modal-overlay">
               <div className="tutor-dash-modal-content tutor-dash-scheduled-courses-modal">
-                  <h3>Scheduled Courses</h3>
+                  <button 
+                      className="tutor-dash-modal-close-button"
+                      onClick={() => setIsScheduledCoursesModalOpen(false)}
+                  >
+                      ✕
+                  </button>
+                  <h2 className="tutor-dash-modal-title">Scheduled Courses</h2>
                   <div className="tutor-dash-scheduled-courses-list">
                       {scheduledCourses.length > 0 ? (
                           scheduledCourses.map((item) => (
@@ -1046,14 +984,6 @@ function TutorDashboard() {
                       ) : (
                           <p className="tutor-dash-no-courses-message">No scheduled courses found</p>
                       )}
-                  </div>
-                  <div className="tutor-dash-modal-buttons">
-                      <button 
-                          className="tutor-dash-close-button"
-                          onClick={() => setIsScheduledCoursesModalOpen(false)}
-                      >
-                          Close
-                      </button>
                   </div>
               </div>
           </div>
