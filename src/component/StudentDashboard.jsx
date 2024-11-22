@@ -15,6 +15,8 @@ function StudentDashboard() {
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId");
   const [activeTab, setActiveTab] = useState('upcomingCourses');
+  const [deadlines, setDeadlines] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!userId) {
@@ -267,6 +269,52 @@ function StudentDashboard() {
     setSearchTerm(e.target.value);
   };
 
+  const fetchDeadlines = async () => {
+    setLoading(true);
+    try {
+        // First, get all enrolled courses' forum IDs
+        const enrolledForumIds = enrolledCourseDetails.map(course => course.forumId);
+        
+        // Fetch assignments for each forum
+        const assignmentPromises = enrolledForumIds.map(forumId =>
+            fetch(`http://localhost:7769/api/assignments/forum/${forumId}`)
+                .then(res => res.json())
+        );
+        
+        const allAssignments = await Promise.all(assignmentPromises);
+        
+        // Flatten assignments array and add course info
+        const processedDeadlines = allAssignments.flat().map(assignment => {
+            const course = enrolledCourseDetails.find(
+                course => course.forumId === assignment.forumId
+            );
+            
+            return {
+                id: assignment.id,
+                title: assignment.title,
+                description: assignment.description,
+                dueDate: new Date(assignment.dueDate),
+                courseName: course?.courseName || 'Unknown Course',
+                status: new Date(assignment.dueDate) < new Date() ? 'expired' : 'upcoming'
+            };
+        });
+
+        // Sort by due date
+        processedDeadlines.sort((a, b) => a.dueDate - b.dueDate);
+        setDeadlines(processedDeadlines);
+    } catch (error) {
+        console.error('Error fetching deadlines:', error);
+    } finally {
+        setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (enrolledCourseDetails.length > 0) {
+        fetchDeadlines();
+    }
+  }, [enrolledCourseDetails]);
+
   return (
     <div className="student-dash-container">
       <header className="student-dash-header">
@@ -306,6 +354,41 @@ function StudentDashboard() {
               </div>
             </div>
           )}
+          
+          <div className="student-dash-deadline-calendar">
+            <h3 className="student-dash-calendar-title">Assignment Deadlines</h3>
+            {loading ? (
+                <div className="student-dash-loading">Loading deadlines...</div>
+            ) : deadlines.length > 0 ? (
+                <div className="student-dash-deadline-list">
+                    {deadlines.map(deadline => (
+                        <div 
+                            key={deadline.id} 
+                            className={`student-dash-deadline-item ${deadline.status}`}
+                        >
+                            <div className="student-dash-deadline-header">
+                                <span className="student-dash-deadline-course">
+                                    {deadline.courseName}
+                                </span>
+                                <span className={`student-dash-deadline-status ${deadline.status}`}>
+                                    {deadline.status === 'expired' ? '⚠️ Expired' : '⏰ Upcoming'}
+                                </span>
+                            </div>
+                            <div className="student-dash-deadline-title">
+                                {deadline.title}
+                            </div>
+                            <div className="student-dash-deadline-date">
+                                Due: {deadline.dueDate.toLocaleDateString()}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="student-dash-no-deadlines">
+                    No upcoming deadlines
+                </div>
+            )}
+          </div>
         </div>
 
         <div className="student-dash-right-column">
