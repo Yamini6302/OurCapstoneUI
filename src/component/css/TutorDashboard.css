@@ -870,3 +870,44 @@
     background: rgba(255, 255, 255, 0.1);
     margin: 2rem 0;
 }
+
+.tutor-dash-card-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    justify-content: flex-end;
+}
+
+.tutor-dash-open-forum-button,
+.tutor-dash-delete-button {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.tutor-dash-open-forum-button {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    border: none;
+}
+
+.tutor-dash-delete-button {
+    background: rgba(255, 75, 75, 0.1);
+    color: #ff4b4b;
+    border: 1px solid rgba(255, 75, 75, 0.2);
+}
+
+.tutor-dash-open-forum-button:hover,
+.tutor-dash-delete-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.button-icon {
+    font-size: 1.1rem;
+}
