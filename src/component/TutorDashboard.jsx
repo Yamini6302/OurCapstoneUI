@@ -792,29 +792,22 @@ function TutorDashboard() {
                     <div className="tutor-dash-course-grid">
                         {scheduledCourses.map((item) => (
                             <div key={item.ctid} className="tutor-dash-scheduled-course-card">
-                                <div className="tutor-dash-course-header">
-                                    <h4>{item.course.courseName}</h4>
-                                    <span className="tutor-dash-course-status">
-                                        {new Date(item.startDate) > new Date() ? 'Upcoming' : 'Active'}
-                                    </span>
-                                </div>
+                                <h4>{item.course.courseName}</h4>
                                 <p>{item.course.description || "No description available"}</p>
                                 <div className="tutor-dash-course-details">
                                     <span className="tutor-dash-start-date">
                                         Starts: {new Date(item.startDate).toLocaleDateString()}
                                     </span>
                                     <div className="tutor-dash-card-buttons">
-                                        {forumData[item.ctid] && (
-                                            <button 
-                                                className="tutor-dash-open-forum-button"
-                                                onClick={() => handleOpenForum(item.ctid)}
-                                            >
-                                                <span className="button-icon">📝</span>
-                                                Open Forum
-                                            </button>
-                                        )}
                                         <button 
-                                            className="tutor-dash-delete-button"
+                                            className="tutor-dash-open-forum-button"
+                                            onClick={() => navigate(`/forum/${item.forumId}`)}
+                                        >
+                                            <span className="button-icon">📝</span>
+                                            Open Forum
+                                        </button>
+                                        <button 
+                                            className="tutor-dash-delete-forum-button"
                                             onClick={() => handleDeleteForum(item.ctid)}
                                         >
                                             <span className="button-icon">🗑️</span>
@@ -1008,14 +1001,16 @@ function TutorDashboard() {
                                       <div className="tutor-dash-card-buttons">
                                           <button 
                                               className="tutor-dash-open-forum-button"
-                                              onClick={() => handleOpenForum(item.ctid)}
+                                              onClick={() => navigate(`/forum/${item.forumId}`)}
                                           >
+                                              <span className="button-icon">📝</span>
                                               Open Forum
                                           </button>
                                           <button 
                                               className="tutor-dash-delete-forum-button"
                                               onClick={() => handleDeleteForum(item.ctid)}
                                           >
+                                              <span className="button-icon">🗑️</span>
                                               Delete Forum
                                           </button>
                                       </div>
