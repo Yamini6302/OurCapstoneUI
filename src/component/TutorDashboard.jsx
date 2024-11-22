@@ -653,25 +653,12 @@ function TutorDashboard() {
 
   const handleDeleteForum = async (ctId) => {
     try {
-        const confirmDelete = window.confirm("Are you sure you want to delete this forum?");
+        const confirmDelete = window.confirm("Are you sure you want to delete this forum and its associated course-tutor mapping?");
         if (!confirmDelete) return;
 
-        // First get the forum to make sure it exists
-        const getForumResponse = await fetch(`http://localhost:7771/api/forum/ct/${ctId}`, {
-            method: 'GET',
-            headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json"
-            },
-            credentials: 'include'
-        });
+        console.log("Attempting to delete forum with ctId:", ctId);
 
-        if (!getForumResponse.ok) {
-            throw new Error("Forum not found");
-        }
-
-        // Then delete the forum
-        const deleteResponse = await fetch(`http://localhost:7771/api/forum/ct/${ctId}`, {
+        const response = await fetch(`http://localhost:7771/api/forum/ct/${ctId}`, {
             method: 'DELETE',
             headers: {
                 "Accept": "application/json",
@@ -680,23 +667,29 @@ function TutorDashboard() {
             credentials: 'include'
         });
 
-        if (!deleteResponse.ok) {
-            throw new Error("Failed to delete forum");
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to delete forum: ${errorText}`);
         }
 
-        // Update local state
+        // Update local state to remove the deleted forum
         setForumData(prev => {
             const updated = { ...prev };
             delete updated[ctId];
             return updated;
         });
 
-        // Refresh the scheduled courses
-        await fetchScheduledCourses();
+        // Remove from scheduled courses
+        setScheduledCourses(prev => 
+            prev.filter(course => course.ctid !== ctId)
+        );
 
         // Show success message
-        setError('Forum deleted successfully');
+        setError('Forum and course-tutor mapping deleted successfully');
         setTimeout(() => setError(''), 3000);
+
+        // Refresh the scheduled courses list
+        await fetchScheduledCourses();
 
     } catch (error) {
         console.error("Error deleting forum:", error);
