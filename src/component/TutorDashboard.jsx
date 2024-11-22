@@ -34,6 +34,7 @@ function TutorDashboard() {
   const [scheduledCourses, setScheduledCourses] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState('myCourses'); // 'myCourses' or 'scheduledCourses'
+  const [forumData, setForumData] = useState({});
 
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId");
@@ -655,26 +656,51 @@ function TutorDashboard() {
         const confirmDelete = window.confirm("Are you sure you want to delete this forum?");
         if (!confirmDelete) return;
 
-        const response = await fetch(`http://localhost:7771/api/forum/ct/${ctId}`, {
+        // First get the forum to make sure it exists
+        const getForumResponse = await fetch(`http://localhost:7771/api/forum/ct/${ctId}`, {
+            method: 'GET',
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'include'
+        });
+
+        if (!getForumResponse.ok) {
+            throw new Error("Forum not found");
+        }
+
+        // Then delete the forum
+        const deleteResponse = await fetch(`http://localhost:7771/api/forum/ct/${ctId}`, {
             method: 'DELETE',
             headers: {
                 "Accept": "application/json",
                 "Content-Type": "application/json"
-            }
+            },
+            credentials: 'include'
         });
 
-        if (!response.ok) {
+        if (!deleteResponse.ok) {
             throw new Error("Failed to delete forum");
         }
 
-        // Refresh the scheduled courses list
-        await handleViewScheduledCourses();
-        
+        // Update local state
+        setForumData(prev => {
+            const updated = { ...prev };
+            delete updated[ctId];
+            return updated;
+        });
+
+        // Refresh the scheduled courses
+        await fetchScheduledCourses();
+
         // Show success message
-        alert("Forum deleted successfully!");
+        setError('Forum deleted successfully');
+        setTimeout(() => setError(''), 3000);
+
     } catch (error) {
         console.error("Error deleting forum:", error);
-        setError("Failed to delete forum");
+        setError(`Failed to delete forum: ${error.message}`);
     }
   };
 
@@ -773,18 +799,35 @@ function TutorDashboard() {
                     <div className="tutor-dash-course-grid">
                         {scheduledCourses.map((item) => (
                             <div key={item.ctid} className="tutor-dash-scheduled-course-card">
-                                <h4>{item.course.courseName}</h4>
+                                <div className="tutor-dash-course-header">
+                                    <h4>{item.course.courseName}</h4>
+                                    <span className="tutor-dash-course-status">
+                                        {new Date(item.startDate) > new Date() ? 'Upcoming' : 'Active'}
+                                    </span>
+                                </div>
                                 <p>{item.course.description || "No description available"}</p>
                                 <div className="tutor-dash-course-details">
                                     <span className="tutor-dash-start-date">
                                         Starts: {new Date(item.startDate).toLocaleDateString()}
                                     </span>
-                                    <button 
-                                        className="tutor-dash-open-forum-button"
-                                        onClick={() => handleOpenForum(item.ctid)}
-                                    >
-                                        Open Forum
-                                    </button>
+                                    <div className="tutor-dash-card-buttons">
+                                        {forumData[item.ctid] && (
+                                            <button 
+                                                className="tutor-dash-open-forum-button"
+                                                onClick={() => handleOpenForum(item.ctid)}
+                                            >
+                                                <span className="button-icon">📝</span>
+                                                Open Forum
+                                            </button>
+                                        )}
+                                        <button 
+                                            className="tutor-dash-delete-button"
+                                            onClick={() => handleDeleteForum(item.ctid)}
+                                        >
+                                            <span className="button-icon">🗑️</span>
+                                            Delete Forum
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -883,10 +926,19 @@ function TutorDashboard() {
                           value={selectedCourseId}
                           onChange={(e) => setSelectedCourseId(e.target.value)}
                           className="tutor-dash-select"
+                          style={{
+                              backgroundColor: '#1a1a1a',
+                              color: '#ffffff',
+                              border: '1px solid #333'
+                          }}
                       >
-                          <option value="">Select a Course</option>
+                          <option value="" style={{backgroundColor: '#1a1a1a', color: '#ffffff'}}>Select a Course</option>
                           {courses && courses.map(course => (
-                              <option key={course.courseId} value={course.courseId}>
+                              <option 
+                                  key={course.courseId} 
+                                  value={course.courseId}
+                                  style={{backgroundColor: '#1a1a1a', color: '#ffffff'}}
+                              >
                                   {course.courseName}
                               </option>
                           ))}
