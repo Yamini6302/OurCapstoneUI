@@ -13,6 +13,10 @@
 }
 
 .student-dash-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   background: var(--bg-dark);
   background-image: 
     radial-gradient(circle at 10% 20%, rgba(111, 91, 176, 0.05) 0%, transparent 50%),
