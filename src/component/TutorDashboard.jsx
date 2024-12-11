@@ -39,6 +39,14 @@ function TutorDashboard() {
   const navigate = useNavigate();
   const userId = sessionStorage.getItem("userId");
 
+  useEffect(() => {
+    const userRole = sessionStorage.getItem("userRole");
+    if (!userRole) {
+        sessionStorage.setItem("userRole", "tutor");
+        console.log("Role set in TutorDashboard: tutor"); // Debugging line
+    }
+  }, []);
+
   // Move fetchCourses outside of useEffect and make it a component function
   const fetchCourses = async () => {
     try {
@@ -703,27 +711,35 @@ function TutorDashboard() {
     course.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleChangePassword = () => {
+    sessionStorage.setItem("userRole", "tutor");
+    navigate("/change-password");
+  };
+
   return (
     <div className="tutor-dash-container">
       <header className="tutor-dash-header">
         <div className="tutor-dash-header-left">
           <img src="/logo.png" alt="Logo" className="tutor-dash-logo" />
-          <div className="tutor-dash-platform-name">
+          <span className="tutor-dash-platform-name">
             <span className="tutor-dash-quick">Quick</span>
             <span className="tutor-dash-learn">Learn</span>
-          </div>
+          </span>
         </div>
-        <div className="tutor-dash-header-right">
+        <div className="tutor-dash-header-center">
           <input
             type="text"
             className="tutor-dash-search-bar"
-            placeholder="Search courses..."
+            placeholder="Search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <button className="tutor-dash-button" onClick={handleLogout}>
-            Logout
+        </div>
+        <div className="tutor-dash-header-right">
+          <button className="tutor-dash-button" onClick={handleChangePassword}>
+            Change Profile Password
           </button>
+          <button className="tutor-dash-button" onClick={handleLogout}>Logout</button>
         </div>
       </header>
 

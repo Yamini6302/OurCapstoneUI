@@ -315,6 +315,19 @@ function StudentDashboard() {
     }
   }, [enrolledCourseDetails]);
 
+  useEffect(() => {
+    const userRole = sessionStorage.getItem("userRole");
+    if (!userRole) {
+        sessionStorage.setItem("userRole", "student");
+        console.log("Role set in StudentDashboard: student"); // Debugging line
+    }
+  }, []);
+
+  const handleChangePassword = () => {
+    sessionStorage.setItem("userRole", "student");
+    navigate("/change-password");
+  };
+
   return (
     <div className="student-dash-container">
       <header className="student-dash-header">
@@ -335,6 +348,9 @@ function StudentDashboard() {
           />
         </div>
         <div className="student-dash-header-right">
+          <button className="student-dash-button" onClick={handleChangePassword}>
+            Change Profile Password
+          </button>
           <button className="student-dash-button" onClick={handleLogout}>Logout</button>
         </div>
       </header>
